@@ -1,0 +1,24 @@
+/* ===== details.css : 補足ページ（動きで見る詳細）の見出し・ページ内リンク ===== */
+
+.details-head { padding: 26px 0 8px; }
+.details-head h1 { margin: 0 0 6px; font-size: 1.55rem; line-height: 1.35; }
+.details-head p  { margin: 0; color: var(--muted); }
+.details-head a  { color: var(--accent); }
+
+.jump {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 14px 0 0; padding: 0; list-style: none;
+}
+.jump a {
+  display: inline-flex; align-items: center;
+  min-height: 40px; padding: 0 14px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface); color: var(--text);
+  text-decoration: none; font-weight: 600; font-size: .92rem;
+}
+.jump a:hover { border-color: var(--accent); }
+
+.group { margin-top: 40px; }
+.group > h2 { margin: 0 0 6px; padding-top: 4px; font-size: 1.35rem; scroll-margin-top: 16px; }
+.group > .lead { margin: 0 0 8px; color: var(--muted); }
+.scene { scroll-margin-top: 16px; }

@@ -1,0 +1,169 @@
+/* ===== story.css : スクロール型の解説（左に固定された1枚の図、右に章） ===== */
+
+.wrap.wide { max-width: 1240px; }
+
+.story-head { padding: 22px 0 8px; }
+.story-head h1 { margin: 0 0 6px; font-size: 1.55rem; line-height: 1.35; }
+.story-head p  { margin: 0; color: var(--muted); }
+.story-head a  { color: var(--accent); }
+
+.story {
+  display: grid; align-items: start; gap: 28px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr);
+  margin-top: 14px;
+}
+
+/* ----- 左：固定された1枚の図 ----- */
+.story-diagram {
+  position: sticky; top: 10px;
+  max-height: calc(100vh - 20px); overflow: auto;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px;
+}
+.levelbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; padding: 0; list-style: none; }
+.levelbar .btn { min-height: 36px; min-width: 48px; padding: 0 8px; font-size: .85rem; }
+.levelbar .btn.done { border-color: var(--accent); }
+.levelbar .btn[aria-current="step"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.level-title { margin: 0 0 10px; font-weight: 700; }
+
+/* ----- 図の中の配置 ----- */
+.m-top {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end;
+  gap: 10px; margin-bottom: 8px;
+}
+.m-top-item { display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
+.m-top-item.right { align-items: flex-end; text-align: right; }
+.m-top-item .tm-arrow { align-self: flex-start; }
+.m-top-item.right .tm-arrow { align-self: flex-end; }
+
+.m-variant {
+  display: flex; flex-direction: column; gap: 0;
+  margin: 0; padding: 0 10px 2px;
+  border: 2px solid var(--accent); border-radius: 10px;
+  background: var(--surface-2);
+}
+.m-variant legend { padding: 0 6px; font-weight: 700; font-size: .78rem; }
+.m-variant label {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 30px; cursor: pointer; font-weight: 600; font-size: .88rem;
+}
+.m-variant input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+/* 1画面に収まるよう、この図の中だけ少しコンパクトにする */
+[data-story-master] .tm { padding: 4px 6px 6px; }
+[data-story-master] .tm-label { padding: 1px 3px; font-size: .88rem; }
+[data-story-master] .tm-note { font-size: .74rem; }
+[data-story-master] .tm-body { gap: 5px; margin-top: 4px; }
+[data-story-master] .tm-arrow { font-size: .78rem; }
+
+.m-variant[data-show]:not(.on) { display: none; }   /* 場所を取らない */
+
+.mhost { padding-bottom: 8px; }
+.m-grid {
+  display: grid; gap: 8px; margin-top: 4px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.m-grid > .tm, .m-grid > .tm-col { min-width: 0; }
+.m-grid > .c-os, .m-grid > .c-engine { grid-column: span 3; }
+.m-grid > .c-left, .m-grid > .c-ctr, .m-grid > .c-store { grid-column: span 2; }
+.m-grid > .c-engine { align-self: stretch; }
+
+/* 説明パネルは、右の列の上に固定して出す（図を隠さない）。何も選んでいない間は出さない */
+.panel-slot { position: sticky; top: 10px; z-index: 6; }
+.panel-slot .tm-panel {
+  max-height: 46vh; overflow: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+}
+.panel-slot .tm-panel.empty { display: none; }
+
+/* 「あとから現れる外枠」は、現れるまで場所を取らない */
+[data-story-master] .tm[data-st="off"] > .tm-label { display: none; }
+.tm-body.nowrap { flex-wrap: nowrap; align-items: center; }
+.tm-body.nowrap > .tm { flex: 1 1 0; min-width: 0; }
+.tm-body.nowrap.top { align-items: flex-start; }
+.tm-body.nowrap.top > .tm-arrow { align-self: center; }
+
+.m-pair  { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.m-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.m-chips > .tm { flex: 1 1 70px; }
+
+/* Windows / Linux：使われない側の部品・文章は表示しない（図と章の両方） */
+[data-story][data-variant="win"] [data-variant="lin"],
+[data-story][data-variant="lin"] [data-variant="win"],
+[data-story-master][data-variant="win"] [data-variant="lin"],
+[data-story-master][data-variant="lin"] [data-variant="win"] { display: none; }
+
+/* 「公式の例が見つからなかった」部品：赤い点線で示す */
+.tm.unk { border-style: dashed; border-color: var(--ng); }
+.tm.unk > .tm-label .tm-note { color: var(--ng); }
+
+/* ----- 右：章 ----- */
+.chapter {
+  min-height: 74vh;
+  padding: 22px 0 22px 16px;
+  border-left: 5px solid var(--border);
+  border-bottom: 1px dashed var(--border);
+  transition: border-color .3s ease;
+}
+.chapter.current { border-left-color: var(--accent); }
+.chapter h2 { margin: 0 0 6px; font-size: 1.2rem; line-height: 1.4; }
+.chapter .lv-tag {
+  display: inline-block; margin-right: 8px; padding: 0 8px;
+  background: var(--accent); color: var(--on-accent);
+  border-radius: 999px; font-size: .8rem; font-weight: 700;
+}
+.chapter ul { margin: 6px 0; padding-left: 1.2em; }
+.chapter .added { margin: 10px 0; padding: 8px 12px; background: var(--surface-2); border-radius: 10px; }
+.chapter .added > strong { display: block; }
+.chapter:last-of-type { min-height: 60vh; border-bottom: 0; }
+
+.story-foot { margin: 18px 0 0; }
+
+/* ----- 実例ページ：compose.yaml の断片 ----- */
+.chapter .code.yaml {
+  margin: 10px 0; padding: 10px 12px;
+  white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal;   /* 字下げは保ち、長い行は折り返す */
+  font-size: .84rem; line-height: 1.7;
+}
+.chapter .code.yaml .cl-line { padding: 0 4px; }
+.chapter .code.yaml .cl-line.add {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-left: 3px solid var(--accent);
+}
+.chapter .code.yaml .cm { color: var(--muted); }
+.chapter .maps-to {
+  display: inline-block; margin: 0 0 8px; padding: 0 10px;
+  border: 1px solid var(--accent); border-radius: 999px;
+  color: var(--accent); font-size: .82rem; font-weight: 700;
+}
+
+/* 実例の図の配置 */
+.ex-grid > .ex-images { grid-column: span 2; }
+.ex-grid > .ex-net    { grid-column: span 4; }
+.ex-grid > .ex-vol    { grid-column: 1 / -1; }
+.ex-ctr-body { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .story { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .story-diagram { top: 0; max-height: 58vh; z-index: 5; }
+  .panel-slot { top: calc(58vh + 4px); }
+  .panel-slot .tm-panel { max-height: 34vh; }
+  .chapter { min-height: 62vh; padding-left: 12px; }
+}
+
+@media (max-width: 760px) {
+  .m-grid { grid-template-columns: minmax(0, 1fr); }
+  .m-grid > .c-os, .m-grid > .c-left, .m-grid > .c-ctr,
+  .m-grid > .c-store, .m-grid > .c-engine { grid-column: auto; }
+  .tm-body.nowrap { flex-wrap: wrap; }
+  .ex-grid > .ex-images, .ex-grid > .ex-net, .ex-grid > .ex-vol { grid-column: auto; }
+}
+
+@media (max-width: 560px) {
+  .story-head h1 { font-size: 1.3rem; }
+}
+
+/* 章の終わりの「もっと詳しく」リンク */
+.chapter .more { margin: 10px 0; font-size: .92rem; }
+.chapter .more a { color: var(--accent); }

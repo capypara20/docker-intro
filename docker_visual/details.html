@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>補足：動きで見る Docker の詳細</title>
+  <meta name="description" content="Docker の仕組みを、1ステップずつ動かして確認する補足ページ。公式ドキュメントの出典つき">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/scenes.css">
+  <link rel="stylesheet" href="css/termmap.css">
+  <link rel="stylesheet" href="css/details.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="details-head">
+    <h1>補足：動きで見る Docker の詳細</h1>
+    <p>全体像（<a href="index.html">index.html</a>）と実例（<a href="example.html">example.html</a>）で説明しきれない部分を、1ステップずつ動かして確認するページです。各図の「▶ 再生」か「次へ」で動きます。</p>
+    <ul class="jump" aria-label="ページ内の移動">
+      <li><a href="#t-vm">VM とコンテナ</a></li>
+      <li><a href="#t-kernel">Windows / Linux・分離モード</a></li>
+      <li><a href="#t-layers">Dockerfile → イメージ</a></li>
+      <li><a href="#t-cache">ビルドキャッシュ</a></li>
+      <li><a href="#t-drivers">ドライバーの種類</a></li>
+      <li><a href="#t-bridge">bridge の名前解決</a></li>
+      <li><a href="#t-publish">ポート公開</a></li>
+      <li><a href="#t-volume">ボリュームで残る</a></li>
+      <li><a href="#t-mounts">bind mount との違い</a></li>
+      <li><a href="#storage-compare">置き場所の比較表</a></li>
+      <li><a href="#sources">出典一覧</a></li>
+    </ul>
+  </header>
+
+  <main>
+
+  <section class="group" id="g-base">
+    <h2>コンテナの基本</h2>
+    <p class="lead">VM との違いと、Windows コンテナ・Linux コンテナの違い（分離モードの比較表つき）。</p>
+<section class="scene" data-scene aria-labelledby="t-vm">
+      <h3 id="t-vm">VM とコンテナのちがい</h3>
+      <div class="stage">
+        <div class="grid2">
+          <div class="stackcol">
+            <h4 class="col-title">仮想マシン（VM）</h4>
+            <div class="row">
+              <div class="box ctr grow" data-show="2">
+                <span class="t">アプリ</span>
+                <div class="box host nest" data-hl="2"><span class="t">ゲストOS</span><span class="sub">自分専用のカーネル入り</span></div>
+              </div>
+              <div class="box ctr grow" data-show="2">
+                <span class="t">アプリ</span>
+                <div class="box host nest" data-hl="2"><span class="t">ゲストOS</span><span class="sub">自分専用のカーネル入り</span></div>
+              </div>
+            </div>
+            <div class="box host bar" data-hl="1">ホストOS</div>
+          </div>
+          <div class="stackcol">
+            <h4 class="col-title">コンテナ</h4>
+            <div class="row">
+              <div class="box ctr grow" data-show="3"><span class="t">アプリ</span><span class="sub">＋ 動くのに必要なファイル</span></div>
+              <div class="box ctr grow" data-show="3"><span class="t">アプリ</span><span class="sub">＋ 動くのに必要なファイル</span></div>
+            </div>
+            <div class="box host bar" data-hl="1,3">ホストOS（カーネルを共有）</div>
+          </div>
+        </div>
+        <p class="verdict" data-show="4">軽くて速い。そのかわり「ホストのカーネルの種類」に縛られる。</p>
+      </div>
+      <ol class="caption-list">
+        <li>土台はどちらも「ホストOS」。この上に、アプリを動かすための“箱”を作ります。</li>
+        <li><strong>VM</strong>：箱の中に「OSまるごと（自分専用のカーネル入り）」が入っています。そのぶん大きくて重い。</li>
+        <li><strong>コンテナ</strong>：OSは持たず、<strong>ホストOSのカーネルを共有</strong>します。中身はアプリと、動くのに必要なファイルだけ。</li>
+        <li>だから軽くて速い。でも代わりに、<strong>ホストのカーネルの種類（Windows か Linux か）に縛られます</strong>。全体像のページ（Lv2）で、「カーネル」を分解して見られます。</li>
+      </ol>
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/" target="_blank" rel="noopener">Microsoft Learn「About Windows containers」</a> … VM は「自分のカーネルを含む完全なOS」を動かす／コンテナはホストOSのカーネルの上で動く</li>
+          <li><a href="https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/" target="_blank" rel="noopener">Docker Docs「What is a container?」</a> … 複数のコンテナは同じカーネルを共有する</li>
+        </ul>
+      </div>
+    </section>
+<section class="scene" data-scene aria-labelledby="t-kernel">
+      <h3 id="t-kernel">Windowsコンテナ と Linuxコンテナは、何が違う？</h3>
+      <p class="scene-sub">答えは「どのカーネルの上で動くか」です。</p>
+      <div class="stage">
+        <div class="lane" data-show="1" data-hl="1">
+          <div class="lane-title">Windowsコンテナ ─ プロセス分離</div>
+          <div class="flow">
+            <div class="box win"><span class="t">Windowsホスト</span><span class="sub">Windowsカーネル</span></div>
+            <span class="link-note">⇄ 同じカーネルを共有</span>
+            <div class="box ctr"><span class="t">Windowsコンテナ</span><span class="sub">Windowsアプリ ＋ Windows用ファイル</span></div>
+          </div>
+        </div>
+        <div class="lane" data-show="2" data-hl="2">
+          <div class="lane-title">Windowsコンテナ ─ Hyper-V分離</div>
+          <div class="flow">
+            <div class="box win"><span class="t">Windowsホスト</span><span class="sub">Windowsカーネル</span></div>
+            <span class="arrow">→</span>
+            <div class="box win">
+              <span class="t">軽量VM</span><span class="sub">専用のWindowsカーネル</span>
+              <div class="box ctr nest"><span class="t">Windowsコンテナ</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="lane" data-show="3" data-hl="3">
+          <div class="lane-title">Linuxコンテナ（Windows PC の上）</div>
+          <div class="flow">
+            <div class="box win"><span class="t">Windowsホスト</span><span class="sub">Windowsカーネル</span></div>
+            <span class="arrow">→</span>
+            <div class="box lin">
+              <span class="t">WSL 2 など</span><span class="sub">Linuxカーネル</span>
+              <div class="box ctr nest"><span class="t">Linuxコンテナ</span><span class="sub">Linuxアプリ ＋ Linux用ファイル</span></div>
+            </div>
+          </div>
+        </div>
+        <p class="verdict" data-show="4">Windowsアプリ → Windowsコンテナ ／ Linuxアプリ → Linuxコンテナ。カーネルが違うものは混ぜられない。</p>
+      </div>
+      <ol class="caption-list">
+        <li><strong>プロセス分離</strong>（従来のモード）：コンテナは、ホストとも他のコンテナとも<strong>同じカーネルを共有</strong>します。公式は「Linuxコンテナの動き方とほぼ同じ」と説明しています。</li>
+        <li><strong>Hyper-V分離</strong>：コンテナごとに最適化された軽量VMの中で動き、<strong>実質的に専用のカーネル</strong>を持ちます。ホストとバージョンが違っていても動かせます。</li>
+        <li><strong>Linuxコンテナ</strong>は Linux のカーネルが必要です。Windows PC では、Microsoft製の Linux カーネルを持つ <strong>WSL 2</strong> の上で動かします（Docker Desktop の場合）。<span class="badge ok">公式に明記</span></li>
+        <li>つまり、<strong>コンテナの種類はカーネルで決まります</strong>。Windowsアプリは Windowsコンテナ、Linuxアプリは Linuxコンテナ。<span class="badge inf">公式の記述からの読み取り</span></li>
+      </ol>
+
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th></th><th>プロセス分離</th><th>Hyper-V分離</th></tr></thead>
+          <tbody>
+            <tr><th>カーネル</th><td>ホストと共有</td><td>コンテナごとに専用（軽量VMの中）</td></tr>
+            <tr><th>ホストとイメージの版</th><td>合わせる必要あり<sup>※</sup></td><td>違っていてもよい</td></tr>
+            <tr><th>既定になる環境</th><td>Windows Server</td><td>Windows 10 Pro / Enterprise</td></tr>
+            <tr><th>ホストから見える？</th><td>見える（<code>Get-Process</code> に出る）</td><td>見えない（かわりに <code>vmwp</code> が見える）</td></tr>
+            <tr><th>指定方法</th><td><code>--isolation=process</code></td><td><code>--isolation=hyperv</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><small>※ ビルド番号が違うと起動がブロックされます（エラー例：<code>The operating system of the container does not match the operating system of the host</code>）。例外として Windows 11 ホストでは Windows Server 2022 のイメージを、24H2 以降は 2025 のイメージもプロセス分離で動かせます。</small></p>
+
+      <div class="note">
+        <strong>Rozeさんの PC の実機確認（2026/10/5）</strong><br>
+        Windows 11 Home でも Windows コンテナが動き、既定の分離は <code>hyperv</code>、<code>--isolation=process</code> でも動いた。プロセス分離では ping がホストの <code>Get-Process</code> に見え、Hyper-V分離では見えなかった。これは上の公式の説明と一致しています。
+      </div>
+
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/hyperv-container" target="_blank" rel="noopener">Microsoft Learn「Isolation modes」</a> … 2つの分離モード／カーネルの共有／既定値／<code>Get-Process</code> と <code>vmwp</code> の例</li>
+          <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility" target="_blank" rel="noopener">Microsoft Learn「Windows container version compatibility」</a> … ホストとイメージのバージョン互換性</li>
+          <li><a href="https://docs.docker.com/desktop/features/wsl/" target="_blank" rel="noopener">Docker Docs「Docker Desktop WSL 2 backend on Windows」</a> … WSL 2 は「a full Linux kernel built by Microsoft」。Docker Desktop は Linux コンテナをその上で動かす</li>
+        </ul>
+      </div>
+    </section>
+  </section>
+
+  <section class="group" id="g-image">
+    <h2>イメージ</h2>
+    <p class="lead">Rozeさんの Dockerfile からイメージができ、コンテナになるまでと、ビルドキャッシュの仕組み。</p>
+<section class="scene" data-scene aria-labelledby="t-layers">
+      <h3 id="t-layers">Dockerfile → イメージ → コンテナ（実例）</h3>
+      <p class="scene-sub">Rozeさんの <code>docker/dockerimage</code> ファイルを使っています。</p>
+      <div class="stage">
+        <div class="split">
+          <div>
+            <h4 class="col-title">Dockerfile（設計図）</h4>
+            <pre class="code" aria-label="Dockerfile"><span class="cl-line" data-hl="2">FROM mcr.microsoft.com/windows/servercore:ltsc2025</span><span class="cl-line" data-hl="3">COPY hello.ps1 C:/app/</span><span class="cl-line" data-hl="4">CMD ["powershell", "-File", "C:/app/hello.ps1"]</span></pre>
+          </div>
+          <div class="stackcol">
+            <div class="writes">
+              <div class="box ctr write" data-show="5" data-hide="7" data-hl="5"><span class="t">コンテナ A</span><span class="sub">書き込み層</span></div>
+              <div class="box ctr write" data-show="6"><span class="t">コンテナ B</span><span class="sub">書き込み層</span></div>
+            </div>
+            <div class="image-frame" data-show="2" data-hl="4,7">
+              <span class="frame-label" data-show="4">🔒 イメージ（変更できない）</span>
+              <div class="layer" data-show="4"><span><code>CMD</code> 起動時に実行するコマンドの設定</span></div>
+              <div class="layer" data-show="3"><span><code>COPY</code> hello.ps1 が入った層</span><span class="ro">読み取り専用</span></div>
+              <div class="layer" data-show="2"><span><code>FROM</code> 土台（servercore）の層</span><span class="ro">読み取り専用</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="caption-list">
+        <li>まず <strong>Dockerfile</strong>（設計図）を書きます。これは Rozeさんの <code>dockerimage</code> ファイルの中身です。</li>
+        <li><code>docker build</code>：<code>FROM</code> の行で、土台になるイメージの<strong>層（レイヤー）</strong>が積まれます。</li>
+        <li><code>COPY</code> の行で、<code>hello.ps1</code> が入った層がその上に積まれます。<strong>レイヤー ＝ ファイルの追加・削除・変更の差分</strong>です。</li>
+        <li><code>CMD</code> は「起動したら何を実行するか」の設定。これで<strong>イメージの完成</strong>です。完成したイメージは<strong>あとから変更できません</strong>（不変）。</li>
+        <li><code>docker run</code>：イメージには触らず、その上に<strong>コンテナ専用の「書き込み層」</strong>を1枚だけ乗せて起動します。</li>
+        <li>同じイメージから、コンテナをいくつでも起動できます。<strong>イメージは共有、書き込み層はコンテナごとに専用</strong>です。</li>
+        <li>コンテナを消すと、消えるのは<strong>書き込み層だけ</strong>。イメージは無傷なので、すぐまた起動できます。</li>
+      </ol>
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/" target="_blank" rel="noopener">Docker Docs「What is an image?」</a></li>
+          <li><a href="https://docs.docker.com/get-started/docker-concepts/building-images/understanding-image-layers/" target="_blank" rel="noopener">Docker Docs「Understanding the image layers」</a> … 層の差分／不変／コンテナ専用の書き込み層／1つのイメージから複数のコンテナ</li>
+        </ul>
+      </div>
+    </section>
+<section class="scene" data-scene aria-labelledby="t-cache">
+      <h3 id="t-cache">ビルドキャッシュ：1つ変えると、後ろは全部やり直し</h3>
+      <div class="stage">
+        <div class="cache-stack">
+          <div class="cl" data-state="1:new;2:cache"><span><code>FROM</code> 土台のイメージ</span></div>
+          <div class="cl" data-state="1:new;2:cache"><span><code>RUN</code> ツールをインストール</span></div>
+          <div class="cl" data-state="1:new;2:cache;3:redo" data-hl="3">
+            <span><code>COPY</code> アプリのコード</span>
+            <span class="edit-mark" data-show="3">✎ ここを変更</span>
+          </div>
+          <div class="cl" data-state="1:new;2:cache;4:redo" data-hl="4"><span><code>RUN</code> ビルド</span></div>
+        </div>
+        <p class="verdict" data-show="5">↓ よく変わる命令ほど、下（後ろ）に書く</p>
+      </div>
+      <ol class="caption-list">
+        <li><strong>初回ビルド</strong>：Dockerfile の各命令が、それぞれ1つのレイヤーになります。</li>
+        <li><strong>何も変えずに再ビルド</strong>：できあがったレイヤーをそのまま使い回すので、速く終わります。</li>
+        <li><code>COPY</code> の元ファイルを変更すると、<strong>そのレイヤーは作り直し</strong>。<br>公式：「Whenever a layer changes, that layer will need to be re-built.」</li>
+        <li>さらに、<strong>その後ろのレイヤーも全部やり直し</strong>。結果が同じでも再実行されます。<br>公式：「Even if they wouldn't build anything differently, they still need to re-run.」</li>
+        <li>ここから分かるコツ：<strong>よく変わる命令を後ろに書くと、やり直す範囲が小さくなります</strong>。<span class="badge inf">仕組みからの読み取り</span>（公式ページが直接そう勧めているわけではありません）</li>
+      </ol>
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://docs.docker.com/build/cache/" target="_blank" rel="noopener">Docker Docs「Docker build cache」</a> … 各命令 ＝ 1レイヤー／変更されたレイヤーと、その後ろのレイヤーは再実行</li>
+        </ul>
+      </div>
+    </section>
+    <div class="note">
+      <strong>注意点</strong><br>
+      ・「イメージを書き換える」ことはできません。変えたいときは、新しいイメージを作ります。<br>
+      ・<code>docker image history</code> で、各レイヤーのサイズと作成コマンドを確認できます（表示サイズは非圧縮）。
+    </div>
+  </section>
+
+  <section class="group" id="g-network">
+    <h2>ネットワーク</h2>
+    <p class="lead">ドライバーの種類（Linux と Windows）、名前での通信、ポート公開。</p>
+<section class="scene" data-scene aria-labelledby="t-drivers">
+      <h3 id="t-drivers">ドライバーの種類：Linux と Windows</h3>
+      <div class="stage">
+        <div class="termmap">
+          <p class="tm-legend"><span>▭ 箱の中の箱 ＝「〜の種類」</span></p>
+          <div class="tm net" data-term="driver" data-show="1" data-hl="1">
+            <button class="tm-label" type="button"><span class="tm-name">ネットワークドライバー</span><span class="tm-note">ネットワークの「種類（動き方）」</span></button>
+            <div class="tm-body top">
+              <div class="tm lin" data-term="grp_linux" data-show="2" data-hl="2">
+                <button class="tm-label" type="button"><span class="tm-name">Linux コンテナの場合</span></button>
+                <div class="tm-body top">
+                  <div class="tm net" data-term="drv_bridge">
+                    <button class="tm-label" type="button"><span class="tm-name">bridge</span><span class="tm-note">既定</span></button>
+                    <div class="tm-body">
+                      <div class="tm net" data-term="net_default"><button class="tm-label" type="button"><span class="tm-name">デフォルト bridge</span></button></div>
+                      <div class="tm net" data-term="net_user"><button class="tm-label" type="button"><span class="tm-name">ユーザー定義 bridge</span></button></div>
+                    </div>
+                  </div>
+                  <div class="tm net" data-term="drv_host"><button class="tm-label" type="button"><span class="tm-name">host</span></button></div>
+                  <div class="tm net" data-term="drv_none"><button class="tm-label" type="button"><span class="tm-name">none</span></button></div>
+                  <div class="tm net" data-term="drv_overlay"><button class="tm-label" type="button"><span class="tm-name">overlay</span></button></div>
+                  <div class="tm net" data-term="drv_macvlan"><button class="tm-label" type="button"><span class="tm-name">macvlan</span></button></div>
+                  <div class="tm net" data-term="drv_ipvlan"><button class="tm-label" type="button"><span class="tm-name">ipvlan</span></button></div>
+                </div>
+              </div>
+              <div class="tm win" data-term="grp_win" data-show="3" data-hl="3">
+                <button class="tm-label" type="button"><span class="tm-name">Windows コンテナの場合</span></button>
+                <div class="tm-body top">
+                  <div class="tm net" data-term="drv_nat"><button class="tm-label" type="button"><span class="tm-name">nat</span><span class="tm-note">既定</span></button></div>
+                  <div class="tm net" data-term="drv_transparent"><button class="tm-label" type="button"><span class="tm-name">transparent</span></button></div>
+                  <div class="tm net" data-term="drv_overlay"><button class="tm-label" type="button"><span class="tm-name">overlay</span></button></div>
+                  <div class="tm net" data-term="drv_l2bridge"><button class="tm-label" type="button"><span class="tm-name">l2bridge</span></button></div>
+                  <div class="tm net" data-term="drv_l2tunnel"><button class="tm-label" type="button"><span class="tm-name">l2tunnel</span><span class="tm-note">Azure 専用</span></button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tm-panel" aria-live="polite"></div>
+        </div>
+      </div>
+      <ol class="caption-list">
+        <li><strong>ドライバー</strong>は、ネットワークの「種類（動き方）」を決める部品です。<code>docker network create -d ドライバー名</code> で指定します。</li>
+        <li><strong>Linux 側</strong>：既定の <strong>bridge</strong> には2種類（デフォルト／ユーザー定義）があります。ほかに host・none・overlay・macvlan・ipvlan があります。</li>
+        <li><strong>Windows 側</strong>は名前が別です。既定は bridge ではなく <strong>nat</strong>。overlay は両方にあります。Linux の host / none を、そのまま当てはめないでください。</li>
+      </ol>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>やりたいこと</th><th>Linuxコンテナ</th><th>Windowsコンテナ</th></tr></thead>
+          <tbody>
+            <tr><th>既定</th><td><code>bridge</code></td><td><code>nat</code></td></tr>
+            <tr><th>外から完全に隔離</th><td><code>none</code></td><td><span class="badge unk">公式未確認</span></td></tr>
+            <tr><th>ホストと同じネットワーク</th><td><code>host</code></td><td><span class="badge unk">公式未確認</span></td></tr>
+            <tr><th>複数のホストをまたぐ</th><td><code>overlay</code></td><td><code>overlay</code></td></tr>
+            <tr><th>物理ネットワークに直結</th><td><code>macvlan</code> / <code>ipvlan</code></td><td><code>transparent</code> / <code>l2bridge</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><small>Windows の nat では、同じサブネット内のコンテナどうしは通信できますが、サブネットをまたぐ通信は非対応と書かれています。</small></p>
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://docs.docker.com/engine/network/" target="_blank" rel="noopener">Docker Docs「Networking overview」</a> … Linux 側のドライバー一覧</li>
+          <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/network-drivers-topologies" target="_blank" rel="noopener">Microsoft Learn「Windows container network drivers」</a> … Windows 側のドライバー（nat が既定）</li>
+        </ul>
+      </div>
+    </section>
+<section class="scene" data-scene aria-labelledby="t-bridge">
+      <h3 id="t-bridge">デフォルト bridge と ユーザー定義 bridge の動き</h3>
+      <p class="scene-sub">※ IPアドレスは説明用の例です。Linux 用 bridge の話です（Windows は、このページの「ドライバーの種類」と「ポート公開」を参照）。</p>
+      <div class="stage">
+        <div class="grid2">
+          <div class="netbox" data-show="1">
+            <div class="col-title">デフォルト bridge</div>
+            <div class="netrow">
+              <div class="node a box ctr"><span class="t">A</span><span class="sub">172.17.0.2</span></div>
+              <div class="node b box ctr"><span class="t">b</span><span class="sub">172.17.0.3</span></div>
+              <span class="packet" data-show="2" data-hide="3" data-move="1:27;2:46">→ 172.17.0.3</span>
+              <span class="packet" data-show="3" data-move="1:27;3:33">→ b</span>
+              <span class="cross" data-show="3" style="left:50%">✕</span>
+            </div>
+            <div class="resbox">
+              <p class="res ok" data-show="2" data-hide="3">✓ IPアドレスなら届く</p>
+              <p class="res ng" data-show="3">✕ 名前（b）では届かない</p>
+            </div>
+          </div>
+          <div class="netbox" data-show="4">
+            <div class="col-title">ユーザー定義 bridge（my-net）</div>
+            <div class="netrow">
+              <div class="node a box ctr"><span class="t">A</span><span class="sub">my-net</span></div>
+              <div class="node b box ctr"><span class="t">b</span><span class="sub">my-net</span></div>
+              <span class="packet" data-show="5" data-hide="6" data-move="1:27;5:46">→ b</span>
+              <div class="node c box ctr outsider" data-show="6" data-hide="7"><span class="t">C</span><span class="sub">未接続</span></div>
+              <div class="node c box ctr" data-show="7" data-hl="7"><span class="t">C</span><span class="sub">my-net</span></div>
+              <span class="packet" data-show="6" data-hide="7" data-move="1:30,42;6:40,42">→ b</span>
+              <span class="cross" data-show="6" data-hide="7" style="left:62%;top:30%">✕</span>
+            </div>
+            <div class="resbox">
+              <p class="res ok" data-show="5" data-hide="6">✓ 名前（b）で届く ＝ 自動の名前解決</p>
+              <p class="res ng" data-show="6" data-hide="7">✕ つないでいない C からは届かない</p>
+              <p class="res ok" data-show="7">✓ 動いたままでも参加できる</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="caption-list">
+        <li><code>--network</code> を指定せずにコンテナ（A と b）を起動すると、自動で<strong>デフォルト bridge</strong> につながります。</li>
+        <li><strong>IPアドレス</strong>を指定すれば、A から b へ届きます。</li>
+        <li>でも<strong>名前（b）では届きません</strong>。デフォルト bridge は名前を解決できず、必要なら旧式の <code>--link</code> が要ります。</li>
+        <li>そこで <code>docker network create my-net</code> で自分用のネットワーク（<strong>ユーザー定義 bridge</strong>）を作り、A と b をつなぎます。</li>
+        <li>ユーザー定義 bridge では<strong>名前でも通信できます</strong>。Docker 組み込みの DNS（<code>127.0.0.11</code>）が名前を解決します。</li>
+        <li>さらに、つないだコンテナどうしだけが通信できる<strong>隔離</strong>も手に入ります。つないでいない C からは届きません。</li>
+        <li>しかも<strong>実行中のコンテナでも、あとから接続・切断できます</strong>（<code>docker network connect</code>）。デフォルト bridge では、作り直しが必要です。</li>
+      </ol>
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://docs.docker.com/engine/network/drivers/bridge/" target="_blank" rel="noopener">Docker Docs「Bridge network driver」</a> … 名前解決／隔離／実行中の接続・切断の違い。デフォルト bridge は本番での利用が推奨されない</li>
+          <li><a href="https://docs.docker.com/engine/network/" target="_blank" rel="noopener">Docker Docs「Networking overview」</a> … 既定ネットワーク／ユーザー定義ネットワークの組み込みDNS（127.0.0.11）</li>
+        </ul>
+      </div>
+    </section>
+<section class="scene" data-scene aria-labelledby="t-publish">
+      <h3 id="t-publish">ポート公開（<code>-p</code>）：外からコンテナへの入り口</h3>
+      <div class="stage">
+        <div class="pubrow">
+          <div class="box host ext"><span class="t">外部</span><span class="sub">ブラウザ・ほかのPC</span></div>
+          <div class="box net hostbox" data-hl="3,5">
+            <span class="t">Dockerホスト</span>
+            <span class="port" data-show="3">8080 番</span>
+          </div>
+          <div class="box ctr ctrbox"><span class="t">コンテナ</span><span class="port">80 番</span></div>
+          <span class="packet" data-show="2" data-hide="3" data-move="1:62;2:12">外へ ←</span>
+          <span class="packet" data-show="3" data-hide="4" data-move="1:12;3:21">→ 中へ</span>
+          <span class="cross" data-show="3" data-hide="4" style="left:33%">✕</span>
+          <span class="packet" data-show="4" data-move="1:12;4:74">→ 中へ</span>
+        </div>
+        <div class="resbox">
+          <p class="res ok" data-show="2" data-hide="3">✓ コンテナから外へ出る通信は、初期状態でできる</p>
+          <p class="res ng" data-show="3" data-hide="4">✕ 外からコンテナへは、そのままでは届かない</p>
+          <p class="res ok" data-show="4" data-hide="5">✓ <code>-p 8080:80</code> ホストの 8080 番 → コンテナの 80 番へ転送</p>
+          <p class="res" data-show="5">Windowsコンテナの既定ネットワークは bridge ではなく <strong>nat</strong>。ポート転送（マッピング）に対応しています。</p>
+        </div>
+      </div>
+      <ol class="caption-list">
+        <li>登場するのは「外部」「Dockerホスト」「コンテナ」の3つ。コンテナはコンテナ内の 80 番ポートでアプリを待ち受けています。</li>
+        <li>コンテナは初期状態でもネットワークが有効で、<strong>外へ出ていく通信</strong>はできます。</li>
+        <li>でも<strong>外からコンテナの中へは入れません</strong>。ホストの外から届かせるには、入り口を開ける必要があります。</li>
+        <li><code>--publish</code>（<code>-p</code>）でポートを公開：ホストの <strong>8080 番</strong>に来た通信を、コンテナの <strong>80 番</strong>へ転送します。（<code>8080:80</code> は書き方の一例）</li>
+        <li><strong>Windowsコンテナ</strong>では、既定のネットワークが <strong>nat</strong> です。ホストからコンテナへのポート転送（マッピング）に対応しています。</li>
+      </ol>
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://docs.docker.com/engine/network/" target="_blank" rel="noopener">Docker Docs「Networking overview」</a> … 外向きの接続／ホスト外からのアクセスには <code>--publish</code>（<code>-p</code>）</li>
+          <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/network-drivers-topologies" target="_blank" rel="noopener">Microsoft Learn「Windows container network drivers」</a> … 既定は nat／ポート転送に対応</li>
+        </ul>
+      </div>
+    </section>
+  </section>
+
+  <section class="group" id="g-volume">
+    <h2>ボリューム</h2>
+    <p class="lead">コンテナを消してもデータが残る流れと、bind mount との違い、置き場所の比較表。</p>
+<section class="scene" data-scene aria-labelledby="t-volume">
+      <h3 id="t-volume">ボリュームがあると、データが生き残る</h3>
+      <div class="stage">
+        <div class="box img imgbar" data-show="1" data-hl="1">
+          <span class="t">イメージ（コンテナの元）</span>
+          <span class="sub">読み取り専用で変わらない。どのコンテナも、ここから作る ↓</span>
+        </div>
+        <div class="vgrid">
+          <div class="vcell">
+            <div class="box ctr vctr" data-hide="4" data-state="1:alive;2:gone">
+              <span class="t">コンテナ A</span><span class="sub">イメージから作成 ／ 書き込み層に保存</span>
+              <span class="file">📄 data.txt</span>
+              <span class="gone-label">✕ 削除された（データも一緒に消えた）</span>
+            </div>
+            <div class="box ctr vctr" data-show="4" data-state="4:alive;5:gone">
+              <span class="t">コンテナ A′</span><span class="sub">同じイメージから作成 ／ ボリュームに保存</span>
+              <span class="gone-label">✕ 削除された</span>
+            </div>
+          </div>
+          <div class="vlink" data-show="4">⇄</div>
+          <div class="box vol" data-show="3" data-hl="5,7">
+            <span class="t">ボリューム myvol</span>
+            <span class="sub">イメージにもコンテナにも属さない、別の置き場（実体は Dockerホスト上のディレクトリ）</span>
+            <span class="file" data-show="4">📄 data.txt</span>
+            <span class="prune" data-show="7">不要なら <code>docker volume prune</code></span>
+          </div>
+          <div class="vlink" data-show="6">⇄</div>
+          <div class="box ctr vctr" data-show="6" data-hl="6">
+            <span class="t">コンテナ B（新しい）</span><span class="sub">同じイメージから作成 ／ 同じボリュームをマウント</span>
+            <span class="file">📄 data.txt が読める</span>
+          </div>
+        </div>
+      </div>
+      <ol class="caption-list">
+        <li><strong>コンテナはイメージから作られます</strong>。イメージは読み取り専用で変わりません。コンテナが書いたデータは、そのコンテナの<strong>書き込み層</strong>に入ります。</li>
+        <li>コンテナを削除すると、書き込み層ごと<strong>データも消えます</strong>。（イメージは無傷です）</li>
+        <li>対策：<strong>ボリューム</strong>を作ります（<code>docker volume create</code>）。イメージにもコンテナにも属さない、Docker が管理する別の保存場所です。</li>
+        <li>同じイメージから新しいコンテナを作り、ボリュームを<strong>マウント</strong>します。データは、ボリュームのほうに書かれます。</li>
+        <li>コンテナを削除しても、<strong>ボリュームとデータは残ります</strong>。ボリュームはコンテナの寿命の外にあるからです。</li>
+        <li>さらに新しいコンテナ B に同じボリュームをマウントすれば、<strong>データをそのまま引き継げます</strong>。複数のコンテナで共有することもできます。</li>
+        <li>注意：使われなくなったボリュームも<strong>自動では消えません</strong>。不要なら <code>docker volume prune</code> で整理します。</li>
+      </ol>
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://docs.docker.com/engine/storage/volumes/" target="_blank" rel="noopener">Docker Docs「Volumes」</a> … 「Volumes are persistent data stores for containers, created and managed by Docker.」／コンテナを消しても残る／<code>docker volume prune</code></li>
+          <li><a href="https://docs.docker.com/engine/storage/" target="_blank" rel="noopener">Docker Docs「Storage」</a> … 「Data written to the container layer doesn't persist when the container is destroyed.」</li>
+        </ul>
+      </div>
+    </section>
+<section class="scene" data-scene aria-labelledby="t-mounts">
+      <h3 id="t-mounts">ボリューム と bind mount（どちらも「外に置く」方法）</h3>
+      <div class="stage">
+        <div class="grid2">
+          <div class="cmpcol" data-show="1">
+            <h4 class="col-title">bind mount</h4>
+            <div class="box host"><span class="t">ホストのフォルダ</span><span class="sub">例：C:\work\data（自分で場所を決める）</span></div>
+            <div class="vlink">⇅ そのまま共有</div>
+            <div class="box ctr"><span class="t">コンテナの中</span><span class="sub">マウント先のパス</span></div>
+            <ul class="points" data-show="2">
+              <li>ホストのフォルダ構造・OS に依存する</li>
+              <li>ホストからも、コンテナ内と同じファイルを触れる</li>
+            </ul>
+          </div>
+          <div class="cmpcol" data-show="1">
+            <h4 class="col-title">ボリューム</h4>
+            <div class="box vol"><span class="t">Docker が管理する領域</span><span class="sub">場所は Docker にお任せ</span></div>
+            <div class="vlink">⇅ マウント</div>
+            <div class="box ctr"><span class="t">コンテナの中</span><span class="sub">マウント先のパス</span></div>
+            <ul class="points" data-show="3">
+              <li>Docker が完全に管理（ホストの中核機能から分離）</li>
+              <li>バックアップ・移行がしやすい</li>
+              <li>Docker のコマンド・APIで管理できる</li>
+              <li>複数のコンテナで比較的安全に共有できる</li>
+            </ul>
+          </div>
+        </div>
+        <p class="verdict" data-show="4">ホストからも編集したい → bind mount ／ コンテナのデータを安全に残したい → ボリューム</p>
+      </div>
+      <ol class="caption-list">
+        <li>どちらも「データをコンテナの外に置いて、コンテナの中に見せる」方法です。何が違うのでしょう。</li>
+        <li><strong>bind mount</strong>：ホストの好きなフォルダを、そのままコンテナに見せます。ホストの<strong>フォルダ構造や OS に依存</strong>します。</li>
+        <li><strong>ボリューム</strong>：置き場所の管理を Docker に任せます。バックアップや移行がしやすく、Docker のコマンドで管理できます。</li>
+        <li>使い分け：ホストからも同じファイルを触りたいなら bind mount、コンテナのデータを安全に残したいならボリューム。<span class="badge inf">公式の説明からの読み取り</span></li>
+      </ol>
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://docs.docker.com/engine/storage/volumes/" target="_blank" rel="noopener">Docker Docs「Volumes」</a> … bind mount との違い／ボリュームの利点</li>
+          <li><a href="https://docs.docker.com/engine/storage/" target="_blank" rel="noopener">Docker Docs「Storage」</a> … 保存先の違い（ボリューム：デーモンが管理／bind mount：ホスト上の任意の場所）</li>
+        </ul>
+      </div>
+    </section>
+    <h4 id="storage-compare">データの置き場所の比較</h4>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr><th>置き場所</th><th>ホスト上の保存先</th><th>コンテナを消すと</th><th>向いている用途</th></tr></thead>
+        <tbody>
+          <tr><th>書き込み層</th><td>コンテナ専用の層</td><td>消える</td><td>一時的な変更</td></tr>
+          <tr><th>ボリューム</th><td>Docker が管理する領域</td><td>残る</td><td>長期保存・性能が必要な処理</td></tr>
+          <tr><th>bind mount</th><td>ホスト上の任意の場所</td><td>残る（ホスト側にあるため）</td><td>ホストとコンテナの両方からファイルを扱う</td></tr>
+          <tr><th>tmpfs mount</th><td>ホストのメモリ上（ディスクに書かない）</td><td>残らない（停止・再起動で消える）</td><td>一時的なキャッシュ・機密情報</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <strong>注意点</strong><br>
+      ・ボリュームは Linux コンテナと Windows コンテナの<strong>両方で使える</strong>と公式に書かれています。<br>
+      ・公式は「ボリュームのデータに、ホストから直接触れるのは非対応」としています。ホストから触りたいときは bind mount を使います。<br>
+      ・Windows コンテナでの bind mount・ボリュームの書き方は、Microsoft Learn「Persistent storage in containers」に例があります（実例ページの Lv6 を参照）。一方、tmpfs が Windows コンテナで使えるかは、公式ページで確認できていません。<span class="badge unk">tmpfs は公式未確認</span><br>
+      ・Windows のコンテナ側の公式ページでも、ホストのファイルやボリュームをコンテナに見せることは「隔離の境界を破る操作」と説明されています。意図して使う操作です。
+    </div>
+  </section>
+
+  <section class="group" id="sources">
+    <h2>出典・未確認の点</h2>
+    <p class="lead">取得日：2026-10-12。すべて公式ドキュメントです（Docker Docs と Microsoft Learn）。</p>
+
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr><th>ページ</th><th>使ったページ</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://docs.docker.com/get-started/docker-overview/" target="_blank" rel="noopener">Docker Docs: Docker overview</a></td><td>全体像・実例</td></tr>
+          <tr><td><a href="https://docs.docker.com/engine/" target="_blank" rel="noopener">Docker Docs: Docker Engine</a></td><td>全体像</td></tr>
+          <tr><td><a href="https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/" target="_blank" rel="noopener">Docker Docs: What is a container?</a></td><td>全体像・補足</td></tr>
+          <tr><td><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/" target="_blank" rel="noopener">Microsoft Learn: About Windows containers</a></td><td>全体像・補足</td></tr>
+          <tr><td><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/hyperv-container" target="_blank" rel="noopener">Microsoft Learn: Isolation modes</a></td><td>全体像・実例・補足</td></tr>
+          <tr><td><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility" target="_blank" rel="noopener">Microsoft Learn: Windows container version compatibility</a></td><td>実例・補足</td></tr>
+          <tr><td><a href="https://docs.docker.com/desktop/features/wsl/" target="_blank" rel="noopener">Docker Docs: Docker Desktop WSL 2 backend on Windows</a></td><td>全体像・補足</td></tr>
+          <tr><td><a href="https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/" target="_blank" rel="noopener">Docker Docs: What is an image?</a></td><td>全体像・補足</td></tr>
+          <tr><td><a href="https://docs.docker.com/get-started/docker-concepts/building-images/understanding-image-layers/" target="_blank" rel="noopener">Docker Docs: Understanding the image layers</a></td><td>全体像・補足</td></tr>
+          <tr><td><a href="https://docs.docker.com/build/cache/" target="_blank" rel="noopener">Docker Docs: Docker build cache</a></td><td>補足</td></tr>
+          <tr><td><a href="https://docs.docker.com/engine/network/" target="_blank" rel="noopener">Docker Docs: Networking overview</a></td><td>全体像・実例・補足</td></tr>
+          <tr><td><a href="https://docs.docker.com/engine/network/drivers/bridge/" target="_blank" rel="noopener">Docker Docs: Bridge network driver</a></td><td>全体像・補足</td></tr>
+          <tr><td><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/network-drivers-topologies" target="_blank" rel="noopener">Microsoft Learn: Windows container network drivers</a></td><td>全体像・実例・補足</td></tr>
+          <tr><td><a href="https://docs.docker.com/engine/storage/" target="_blank" rel="noopener">Docker Docs: Storage</a></td><td>全体像・補足</td></tr>
+          <tr><td><a href="https://docs.docker.com/engine/storage/volumes/" target="_blank" rel="noopener">Docker Docs: Volumes</a></td><td>全体像・実例・補足</td></tr>
+          <tr><td><a href="https://docs.docker.com/get-started/docker-concepts/running-containers/multi-container-applications/" target="_blank" rel="noopener">Docker Docs: Multi-container applications</a></td><td>実例</td></tr>
+          <tr><td><a href="https://docs.docker.com/compose/how-tos/networking/" target="_blank" rel="noopener">Docker Docs: Networking in Compose</a></td><td>実例</td></tr>
+          <tr><td><a href="https://docs.docker.com/reference/cli/docker/compose/down/" target="_blank" rel="noopener">Docker Docs: docker compose down</a></td><td>実例</td></tr>
+          <tr><td><a href="https://docs.docker.com/guides/nodejs/develop/" target="_blank" rel="noopener">Docker Docs: Develop your Node.js app</a></td><td>実例</td></tr>
+          <tr><td><a href="https://hub.docker.com/_/postgres" target="_blank" rel="noopener">Docker Hub: postgres（公式イメージ）</a></td><td>実例</td></tr>
+          <tr><td><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/persistent-storage" target="_blank" rel="noopener">Microsoft Learn: Persistent storage in containers</a></td><td>実例</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>この資料での区別</h4>
+    <ul>
+      <li><span class="badge ok">公式に明記</span> 公式ページにそのまま書かれていること</li>
+      <li><span class="badge inf">読み取り</span> 公式の記述から筆者が導いたこと（公式が直接そう書いているわけではない）</li>
+      <li><span class="badge unk">公式未確認</span> 今回の取得では確認できていないこと</li>
+    </ul>
+
+    <h4>確認できていない点</h4>
+    <ul>
+      <li>Windows コンテナでの <code>host</code> / <code>none</code> ネットワークの扱い</li>
+      <li>Windows コンテナでの tmpfs の可否</li>
+      <li>Compose の <code>volumes</code> で、Windows のパス（<code>c:\data</code>）をどう書くか</li>
+      <li>Windows コンテナの DB コンテナの公式の例（SQL Server の公式コンテナイメージが Linux 向けであることの、公式ページでの確認）</li>
+      <li>IP アドレス、サービス名、環境変数名などは、説明用の例です（公式ページに載っている値ではありません）</li>
+      <li>Docker Engine が Windows の上／WSL 2 の中のどちらで動くかは、構成によって違います。ここでは Docker Desktop（WSL 2）と、Windows ネイティブの Docker Engine を例にしています</li>
+    </ul>
+
+    <div class="note">
+      <strong>原文の照合のお願い</strong><br>
+      この資料は、公式ページを取得して要約した内容をもとに作っています。英語の引用（「…」で囲んだ部分）は、公開・共有する前に、上のリンク先の原文と見比べて確認してください。公式ドキュメントは更新されることがあります。
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<script src="js/terms.js"></script>
+<script src="js/stepper.js"></script>
+<script src="js/termmap.js"></script>
+</body>
+</html>

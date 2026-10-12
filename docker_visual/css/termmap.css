@@ -1,0 +1,114 @@
+/* ===== termmap.css : 用語マップ（入れ子の図＋クリックで説明） ===== */
+
+.termmap { display: flex; flex-direction: column; gap: 12px; }
+
+.tm-legend {
+  display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0;
+  color: var(--muted); font-size: .85rem;
+}
+
+/* ----- 箱（入れ子） ----- */
+.tm {
+  --c: var(--c-host);
+  position: relative;
+  padding: 6px 8px 8px;
+  border: 2px solid var(--c);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--c) 10%, var(--surface));
+  transition: background .3s ease, border-color .3s ease, box-shadow .3s ease;
+}
+.tm.win  { --c: var(--c-win); }
+.tm.lin  { --c: var(--c-lin); }
+.tm.img  { --c: var(--c-img); }
+.tm.net  { --c: var(--c-net); }
+.tm.vol  { --c: var(--c-vol); }
+.tm.ctr  { --c: var(--c-ctr); }
+.tm.host { --c: var(--c-host); }
+
+.tm-label {
+  display: block; width: 100%;
+  padding: 2px 4px;
+  border: 0; border-radius: 6px;
+  background: transparent; color: var(--text);
+  font: inherit; font-weight: 700; text-align: left;
+  cursor: pointer;
+}
+.tm-label:hover { background: color-mix(in srgb, var(--c) 20%, transparent); }
+.tm-note { display: block; font-weight: 400; font-size: .8rem; line-height: 1.4; color: var(--muted); }
+
+.tm-body { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin-top: 6px; }
+.tm-body > .tm { flex: 1 1 110px; }
+.tm-body.top { align-items: flex-start; }   /* 高さの違う箱を、縦に引き伸ばさない */
+.tm-body.col { flex-direction: column; }
+.tm-body.col > .tm { flex: 0 0 auto; }
+.tm-body > .tm-col { flex: 1 1 190px; }
+
+.tm-arrow {
+  align-self: center;
+  color: var(--muted); font-weight: 700; font-size: .85rem; text-align: center;
+}
+.tm-arrow small { display: block; font-weight: 400; }
+
+/* 選択・関係の強調 */
+.tm.sel  { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tm.anc  { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
+.tm.desc { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); }
+
+/* 「輪郭だけ」の状態：ここに何かが入る、という予告（クリックすれば説明は出る） */
+.tm[data-st="ghost"] { border-style: dashed; border-color: var(--border); background: transparent; }
+.tm[data-st="ghost"] > .tm-label { color: var(--muted); }
+.tm[data-st="ghost"] > .tm-label .tm-note { display: none; }
+
+/* 外枠だけ、あとから現れる（中身は最初から見えている） */
+.tm[data-st="off"] { border-color: transparent; background: transparent; }
+.tm[data-st="off"] > .tm-label { visibility: hidden; }
+
+/* ----- 配置 ----- */
+.tm-flow {
+  display: grid; gap: 12px; align-items: start;
+  grid-template-columns: minmax(0, 1.5fr) auto minmax(0, 1fr);
+}
+.tm-flow.two   { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.4fr); align-items: center; }
+.tm-flow.three { grid-template-columns: minmax(0, .7fr) auto minmax(0, 1.4fr) auto minmax(0, 1.3fr); }
+.tm-col { display: flex; flex-direction: column; gap: 8px; }
+.tm-mid { align-self: center; }
+.tm-mid::before { content: "→ "; }
+
+@media (max-width: 760px) {
+  .tm-flow, .tm-flow.two, .tm-flow.three { grid-template-columns: minmax(0, 1fr); }
+  .tm-mid::before { content: "↓ "; }
+}
+
+/* ----- 説明パネル ----- */
+.tm-panel {
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border); border-left: 5px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+}
+.tm-hint  { margin: 0; color: var(--muted); }
+.tm-title { font-weight: 700; font-size: 1.05rem; }
+.tm-def   { margin: 4px 0 8px; }
+.tm-rel {
+  display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px;
+  margin: 0; font-size: .92rem;
+}
+.tm-rel dt { color: var(--muted); font-weight: 700; }
+.tm-rel dd { margin: 0; }
+.tm-rel ul { margin: 0; padding-left: 1.1em; list-style: none; }
+.tm-src { margin: 8px 0 0; font-size: .85rem; color: var(--muted); }
+.tm-src a { color: var(--accent); word-break: break-all; }
+
+/* ----- 「関係を式にすると」 ----- */
+.formula {
+  margin: 14px 0 0; padding: 10px 14px 10px 14px;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface);
+}
+.formula > strong { display: block; margin-bottom: 4px; }
+.formula ul { margin: 0; padding-left: 1.2em; }
+.formula li { margin: 2px 0; }
+
+@media (max-width: 560px) {
+  .tm-rel { grid-template-columns: 1fr; }
+}

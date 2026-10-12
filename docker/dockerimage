@@ -1,0 +1,3 @@
+FROM mcr.microsoft.com/windows/servercore:ltsc2025
+COPY hello.ps1 C:/app/
+CMD ["powershell", "-File", "C:/app/hello.ps1"]

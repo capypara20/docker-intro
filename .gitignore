@@ -1,0 +1,7 @@
+# draw.io の図と、その生成スクリプト（公開しない）
+*.drawio
+gen_drawio.py
+gen_concepts.py
+
+# 個人の学習メモ（公開しない）
+NOTES.md

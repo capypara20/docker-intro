@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dockerを1枚の図で理解する</title>
+  <meta name="description" content="全体像の1枚の図に、スクロールするだけで詳細が組み上がる Docker の解説。公式ドキュメントの出典つき">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/scenes.css">
+  <link rel="stylesheet" href="css/termmap.css">
+  <link rel="stylesheet" href="css/story.css">
+</head>
+<body>
+<div class="wrap wide">
+
+  <header class="story-head">
+    <h1>Dockerを1枚の図で理解する</h1>
+    <p>左の図は<strong>ずっと1枚</strong>。右を読み進める（スクロールする）と、輪郭だけの図が1段階ずつ組み上がります。箱を<strong>クリック</strong>すると意味と関係が出ます。
+      （<a href="example.html">実例：Webアプリ ＋ DB</a> ／ <a href="details.html">補足：動きで見る詳細</a>）</p>
+  </header>
+
+  <div class="story" data-story>
+
+    <!-- =================== 左：1枚の図 =================== -->
+    <div class="story-diagram">
+      <ol class="levelbar" aria-label="図の詳しさの段階"></ol>
+      <p class="level-title" aria-live="polite"></p>
+
+      <div data-story-master data-variant="win">
+        <div class="termmap">
+
+          <div class="m-top">
+            <div class="m-top-item">
+              <div class="tm host" data-term="user">
+                <button class="tm-label" type="button"><span class="tm-name">あなた</span><span class="tm-note">docker コマンドを打つ</span></button>
+              </div>
+              <span class="tm-arrow">↓ docker コマンド</span>
+            </div>
+            <fieldset class="m-variant" data-show="6">
+            <legend>どちらのコンテナの図にする？</legend>
+            <label><input type="radio" name="variant" value="win" checked> Windows コンテナ</label>
+            <label><input type="radio" name="variant" value="lin"> Linux コンテナ</label>
+          </fieldset>
+            <div class="m-top-item right">
+              <div class="tm host" data-term="registry" data-state="1:ghost;4:on" data-hl="4">
+                <button class="tm-label" type="button"><span class="tm-name">レジストリ</span><span class="tm-note">Docker Hub など（PCの外）</span></button>
+              </div>
+              <span class="tm-arrow" data-show="4">⇅ pull（取得）/ push（送信）</span>
+            </div>
+          </div>
+
+          <div class="tm host mhost" data-term="dockerhost">
+            <button class="tm-label" type="button"><span class="tm-name">Docker ホスト（あなたの PC）</span></button>
+            <div class="m-grid">
+
+              <!-- ホストOS -->
+              <div class="tm win c-os" data-term="hostos" data-state="1:ghost;2:on" data-hl="2">
+                <button class="tm-label" type="button"><span class="tm-name">Windows（ホストOS）</span><span class="tm-note">コンテナの土台</span></button>
+                <div class="tm-body">
+                  <div class="tm win" data-term="kernel" data-show="2"><button class="tm-label" type="button"><span class="tm-name">カーネル</span></button></div>
+                  <div class="tm lin" data-term="usermode" data-show="2"><button class="tm-label" type="button"><span class="tm-name">ユーザーモードのファイル</span></button></div>
+                  <div class="tm lin" data-term="wsl2" data-variant="lin" data-show="6" data-hl="6">
+                    <button class="tm-label" type="button"><span class="tm-name">WSL 2</span><span class="tm-note">Linux カーネル</span></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Docker Engine -->
+              <div class="tm ctr c-engine" data-term="engine" data-state="1:ghost;3:on" data-hl="3">
+                <button class="tm-label" type="button"><span class="tm-name">Docker Engine</span><span class="tm-note">命令を受けて、作る係</span></button>
+                <div class="tm-body nowrap">
+                  <div class="tm host" data-term="cli" data-show="3"><button class="tm-label" type="button"><span class="tm-name">docker</span></button></div>
+                  <span class="tm-arrow" data-show="3">→</span>
+                  <div class="tm host" data-term="api" data-show="3"><button class="tm-label" type="button"><span class="tm-name">API</span></button></div>
+                  <span class="tm-arrow" data-show="3">→</span>
+                  <div class="tm host" data-term="dockerd" data-show="3"><button class="tm-label" type="button"><span class="tm-name">dockerd</span></button></div>
+                </div>
+                <span class="tm-arrow" data-show="3">dockerd が、イメージ・コンテナ・ネットワーク・ボリュームを作って管理する ↓</span>
+              </div>
+
+              <!-- 左：イメージ・ネットワーク -->
+              <div class="tm-col c-left">
+                <div class="tm img" data-term="image" data-state="1:ghost;4:on" data-hl="4">
+                  <button class="tm-label" type="button"><span class="tm-name">イメージ</span><span class="tm-note">コンテナの元・変わらない</span></button>
+                  <div class="tm-body col">
+                    <div class="tm img" data-term="layer" data-show="4"><button class="tm-label" type="button"><span class="tm-name">レイヤー</span><span class="tm-note">COPY の層</span></button></div>
+                    <div class="tm img" data-term="layer" data-show="4"><button class="tm-label" type="button"><span class="tm-name">レイヤー</span><span class="tm-note">FROM の層（土台）</span></button></div>
+                  </div>
+                </div>
+
+                <div class="tm net" data-term="network" data-state="1:ghost;7:on" data-hl="7">
+                  <button class="tm-label" type="button"><span class="tm-name">ネットワーク</span><span class="tm-note">コンテナの通り道</span></button>
+                  <div class="tm-body col">
+                    <div class="tm net" data-term="drv_nat" data-variant="win" data-show="7"><button class="tm-label" type="button"><span class="tm-name">nat</span><span class="tm-note">Windows の既定</span></button></div>
+                    <div class="tm net" data-term="net_default" data-variant="lin" data-show="7"><button class="tm-label" type="button"><span class="tm-name">デフォルト bridge</span><span class="tm-note">Linux の既定</span></button></div>
+                    <div class="tm net" data-term="net_user" data-variant="lin" data-show="7"><button class="tm-label" type="button"><span class="tm-name">ユーザー定義 bridge</span><span class="tm-note">名前で通信できる</span></button></div>
+                    <span class="tm-arrow" data-show="7">外から入るには <code>-p</code>（ポート公開）</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- コンテナ -->
+              <div class="tm ctr c-ctr" data-term="container" data-state="1:ghost;5:on" data-hl="5">
+                <button class="tm-label" type="button">
+                  <span class="tm-name">コンテナ</span>
+                  <span class="tm-note">動いているもの（<span data-variant="win">Windows 用</span><span data-variant="lin">Linux 用</span>）</span>
+                </button>
+                <div class="tm-body col">
+                  <div class="m-pair">
+                    <div class="tm host" data-term="app" data-show="5"><button class="tm-label" type="button"><span class="tm-name">アプリ</span></button></div>
+                    <div class="tm img" data-term="baseimage" data-show="5"><button class="tm-label" type="button"><span class="tm-name">ベースイメージ</span><span class="tm-note">自分用の OS 部品</span></button></div>
+                    <div class="tm img" data-term="layer_ro" data-show="5"><button class="tm-label" type="button"><span class="tm-name">イメージの層</span><span class="tm-note">読み取り専用</span></button></div>
+                    <div class="tm ctr" data-term="writable" data-show="5"><button class="tm-label" type="button"><span class="tm-name">書き込み層</span><span class="tm-note">消える</span></button></div>
+                  </div>
+                  <span class="tm-arrow" data-show="5">
+                    <span data-variant="win">⇠ Windows のカーネルを借りる</span>
+                    <span data-variant="lin">⇠ WSL 2 の Linux カーネルを借りる</span>
+                  </span>
+                  <div class="tm net" data-term="drv_nat" data-variant="win" data-show="7" data-hl="7"><button class="tm-label" type="button"><span class="tm-name">ネットワーク接続：nat</span></button></div>
+                  <div class="tm net" data-term="net_default" data-variant="lin" data-show="7" data-hl="7"><button class="tm-label" type="button"><span class="tm-name">ネットワーク接続：bridge</span></button></div>
+                  <div class="m-chips">
+                    <div class="tm net" data-term="mountpoint" data-show="8" data-hl="8"><button class="tm-label" type="button"><span class="tm-name">/data</span><span class="tm-note">← ボリューム</span></button></div>
+                    <div class="tm net" data-term="mountpoint" data-show="9" data-hl="9"><button class="tm-label" type="button"><span class="tm-name">/src</span><span class="tm-note">← bind mount</span></button></div>
+                    <div class="tm net" data-term="mountpoint" data-show="9" data-hl="9"><button class="tm-label" type="button"><span class="tm-name">/cache</span><span class="tm-note">← tmpfs</span></button></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- データの置き場所 -->
+              <div class="tm vol c-store" data-term="storage_group" data-state="1:ghost;8:on" data-hl="8">
+                <button class="tm-label" type="button"><span class="tm-name">データの置き場所</span><span class="tm-note">コンテナの外</span></button>
+                <div class="tm-body col">
+                  <div class="tm vol" data-term="dockerarea" data-show="8">
+                    <button class="tm-label" type="button"><span class="tm-name">Docker が管理する領域</span></button>
+                    <div class="tm-body">
+                      <div class="tm vol" data-term="volume"><button class="tm-label" type="button"><span class="tm-name">ボリューム</span><span class="tm-note">消えない</span></button></div>
+                    </div>
+                  </div>
+                  <div class="tm host" data-term="hostdir" data-show="9" data-hl="9"><button class="tm-label" type="button"><span class="tm-name">ホスト上の好きな場所</span><span class="tm-note">bind mount の元</span></button></div>
+                  <div class="tm host" data-term="hostmem" data-show="9" data-hl="9">
+                    <button class="tm-label" type="button"><span class="tm-name">ホストのメモリ</span></button>
+                    <div class="tm-body">
+                      <div class="tm vol" data-term="tmpfs"><button class="tm-label" type="button"><span class="tm-name">tmpfs</span><span class="tm-note">止めると消える</span></button></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="tm-panel" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== 右：章（スクロールすると図が詳しくなる） =================== -->
+    <div class="chapters">
+      <div class="panel-slot"></div>
+
+      <section class="chapter" data-title="全体像">
+        <h2><span class="lv-tag">Lv1</span>全体像：この1枚から始める</h2>
+        <p>あなたが <code>docker</code> コマンドを打つと、<strong>あなたの PC（Docker ホスト）</strong>の中で、6つの部品が働きます。いまは、輪郭（点線）だけです。</p>
+        <ul>
+          <li><strong>ホストOS</strong>：コンテナの土台</li>
+          <li><strong>Docker Engine</strong>：命令を受けて、作る係</li>
+          <li><strong>イメージ</strong>：コンテナの元</li>
+          <li><strong>コンテナ</strong>：動いているもの</li>
+          <li><strong>ネットワーク</strong>：コンテナの通り道</li>
+          <li><strong>データの置き場所</strong>：消したくないデータ</li>
+        </ul>
+        <p>PC の外には<strong>レジストリ</strong>（イメージの保管場所）があります。ここから、1つずつ中身を足していきます。<strong>スクロール</strong>してください。</p>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li><a href="https://docs.docker.com/get-started/docker-overview/" target="_blank" rel="noopener">Docker Docs「Docker overview」</a> … クライアント・デーモン・レジストリ・オブジェクトの関係</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="chapter" data-title="ホストOS">
+        <h2><span class="lv-tag">Lv2</span>ホストOS：コンテナが借りる土台</h2>
+        <p>OS は「<strong>カーネル</strong>（心臓部）」と「<strong>ユーザーモードのファイル</strong>（その上で動く部品）」でできています。</p>
+        <p>コンテナは、あとで見るように、このうち<strong>カーネルを借りて</strong>動きます。だから、土台の OS の種類が大事です。</p>
+        <div class="added"><strong>ここで増えたもの</strong>ホストOS ⊃ カーネル ＋ ユーザーモードのファイル</div>
+        <p class="more">▶ もっと詳しく（動きで見る）：<a href="details.html#t-vm">VM とコンテナのちがい</a></p>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/" target="_blank" rel="noopener">Microsoft Learn「About Windows containers」</a> … コンテナはホストOSのカーネルの上で動く／ユーザーモードのファイルは「ベースイメージ」に入っている</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="chapter" data-title="Docker Engine">
+        <h2><span class="lv-tag">Lv3</span>Docker Engine：命令を受けて、作る係</h2>
+        <p>あなたの命令は、<strong>docker → API → dockerd</strong> の順に流れます。実際の作業をするのは <strong>dockerd</strong>（デーモン）。ビルド・実行・レジストリとのやり取りを担当し、イメージ・コンテナ・ネットワーク・ボリュームを<strong>作って管理</strong>します。</p>
+        <div class="added">
+          <strong>ここで増えたもの</strong>
+          Docker Engine ＝ docker（CLI）＋ Docker API ＋ dockerd
+        </div>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li><a href="https://docs.docker.com/engine/" target="_blank" rel="noopener">Docker Docs「Docker Engine」</a> … Engine ＝ サーバー（dockerd）・API・CLI（docker）</li>
+            <li><a href="https://docs.docker.com/get-started/docker-overview/" target="_blank" rel="noopener">Docker Docs「Docker overview」</a> … 命令の流れ</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="chapter" data-title="イメージ">
+        <h2><span class="lv-tag">Lv4</span>イメージ：コンテナの元</h2>
+        <p><strong>イメージ</strong>は、読み取り専用のテンプレートです。複数の<strong>レイヤー（層）</strong>が積み重なってできていて、<strong>作成後は変更できません</strong>。</p>
+        <p>イメージは<strong>レジストリ</strong>（Docker Hub など）に保管・配布されます。dockerd が <code>docker pull</code> で取ってきます。</p>
+        <div class="added">
+          <strong>ここで増えたもの</strong>
+          イメージ ＝ レイヤーの積み重ね　／　レジストリ ⇄ イメージ（pull / push）
+        </div>
+        <p class="more">▶ もっと詳しく（動きで見る）：<a href="details.html#t-layers">Dockerfile → イメージ → コンテナ</a> ／ <a href="details.html#t-cache">ビルドキャッシュ</a></p>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li><a href="https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/" target="_blank" rel="noopener">Docker Docs「What is an image?」</a> … 作成後は変更できない／層の集まり</li>
+            <li><a href="https://docs.docker.com/get-started/docker-overview/" target="_blank" rel="noopener">Docker Docs「Docker overview」</a> … レジストリ</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="chapter" data-title="コンテナ">
+        <h2><span class="lv-tag">Lv5</span>コンテナ：イメージを動かしたもの</h2>
+        <p><strong>コンテナはイメージから作られます</strong>（<code>docker run</code>）。イメージの層（読み取り専用）に、<strong>コンテナ専用の書き込み層</strong>を1枚足したものです。</p>
+        <p>コンテナはカーネルを持たず、<strong>ホストOSのカーネルを借りて</strong>動きます。アプリと、自分用の OS 部品（ベースイメージ）だけを持っています。</p>
+        <div class="added">
+          <strong>ここで増えたもの</strong>
+          コンテナ ＝ イメージの層（読み取り専用）＋ 書き込み層 ＋ アプリ　※ カーネルは借りる
+        </div>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li><a href="https://docs.docker.com/get-started/docker-concepts/building-images/understanding-image-layers/" target="_blank" rel="noopener">Docker Docs「Understanding the image layers」</a> … コンテナ専用の書き込み層／1つのイメージから複数のコンテナ</li>
+            <li><a href="https://docs.docker.com/get-started/docker-overview/" target="_blank" rel="noopener">Docker Docs「Docker overview」</a> … 「A container is a runnable instance of an image.」</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="chapter" data-title="Windows と Linux">
+        <h2><span class="lv-tag">Lv6</span>Windowsコンテナ と Linuxコンテナ</h2>
+        <p>違いは、<strong>借りるカーネルの種類</strong>です。図の上のスイッチで、Windows コンテナと Linux コンテナを切り替えてみてください。</p>
+        <ul>
+          <li><strong>Windows コンテナ</strong>：Windows のカーネルを借りる（プロセス分離）。Hyper-V 分離なら、軽量VMの中に専用のカーネルを持つ。</li>
+          <li><strong>Linux コンテナ</strong>：Linux のカーネルが必要。Windows PC では <strong>WSL 2</strong>（Microsoft 製の Linux カーネル）が土台になる。</li>
+        </ul>
+        <div class="added">
+          <strong>ここで増えたもの</strong>
+          Linux コンテナの土台 ＝ WSL 2 の Linux カーネル。カーネルが違うものは混ぜられない。
+        </div>
+        <p class="more">▶ もっと詳しく（動きで見る）：<a href="details.html#t-kernel">分離モードの比較表・Rozeさんの PC の実機確認</a></p>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/hyperv-container" target="_blank" rel="noopener">Microsoft Learn「Isolation modes」</a> … プロセス分離／Hyper-V 分離</li>
+            <li><a href="https://docs.docker.com/desktop/features/wsl/" target="_blank" rel="noopener">Docker Docs「WSL 2 backend」</a> … 「a full Linux kernel built by Microsoft」</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="chapter" data-title="ネットワーク">
+        <h2><span class="lv-tag">Lv7</span>ネットワーク：コンテナの通り道</h2>
+        <p>コンテナは、初期状態でネットワークにつながっていて、<strong>外へ出る通信</strong>はできます。</p>
+        <ul>
+          <li><strong>Windows</strong>：既定のネットワークは <strong>nat</strong>。</li>
+          <li><strong>Linux</strong>：既定は<strong>デフォルト bridge</strong>。公式は「ユーザー定義 bridge のほうが優れている」と明記（名前で通信できる・つないだものだけが通信できる・動いたまま付け外しできる）。</li>
+          <li><strong>外から中へ</strong>入れるには、<code>-p</code> でポートを公開する。</li>
+        </ul>
+        <div class="added">
+          <strong>ここで増えたもの</strong>
+          ホスト ＞ ネットワーク ＞ コンテナ。1つのコンテナを複数のネットワークにつなげられる。
+        </div>
+        <p class="more">▶ もっと詳しく（動きで見る）：<a href="details.html#t-drivers">ドライバーの種類</a> ／ <a href="details.html#t-bridge">bridge の名前解決</a> ／ <a href="details.html#t-publish">ポート公開</a></p>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li><a href="https://docs.docker.com/engine/network/" target="_blank" rel="noopener">Docker Docs「Networking overview」</a> … 既定は bridge／ポート公開（<code>-p</code>）</li>
+            <li><a href="https://docs.docker.com/engine/network/drivers/bridge/" target="_blank" rel="noopener">Docker Docs「Bridge network driver」</a> … デフォルト bridge とユーザー定義 bridge の違い</li>
+            <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/network-drivers-topologies" target="_blank" rel="noopener">Microsoft Learn「Windows container network drivers」</a> … Windows の既定は nat</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="chapter" data-title="ボリューム">
+        <h2><span class="lv-tag">Lv8</span>ボリューム：消えないデータの置き場</h2>
+        <p>コンテナの<strong>書き込み層</strong>は、コンテナを消すと一緒に消えます。残したいデータは、コンテナの外に置きます。</p>
+        <p><strong>ボリューム</strong>は、Docker が管理する置き場です。コンテナの「マウント先」（<code>/data</code>）から見せます。ボリュームは<strong>イメージにもコンテナにも属さない</strong>ので、コンテナを消しても残ります。</p>
+        <div class="added">
+          <strong>ここで増えたもの</strong>
+          コンテナ ← マウント先 ← ボリューム（Docker が管理する領域）
+        </div>
+        <p class="more">▶ もっと詳しく（動きで見る）：<a href="details.html#t-volume">ボリュームで残る流れ</a> ／ <a href="details.html#t-mounts">bind mount との違い</a> ／ <a href="details.html#storage-compare">置き場所の比較表</a></p>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li><a href="https://docs.docker.com/engine/storage/volumes/" target="_blank" rel="noopener">Docker Docs「Volumes」</a> … 「Volumes are persistent data stores for containers, created and managed by Docker.」</li>
+            <li><a href="https://docs.docker.com/engine/storage/" target="_blank" rel="noopener">Docker Docs「Storage」</a> … 書き込み層のデータはコンテナを消すと残らない</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="chapter" data-title="完成図">
+        <h2><span class="lv-tag">Lv9</span>bind mount と tmpfs：外に置く、ほかの方法（完成図）</h2>
+        <p>外に置く方法は、ボリュームのほかに2つあります。</p>
+        <ul>
+          <li><strong>bind mount</strong>：ホスト上の好きな場所を、そのまま見せる。ホストからも同じファイルを触れる。</li>
+          <li><strong>tmpfs</strong>：ホストのメモリ上だけ。ディスクには書かれず、止めると消える。</li>
+        </ul>
+        <div class="added">
+          <strong>これで完成</strong>
+          図の箱をクリックすると、「何の中にある？」「中に入っているもの」「ほかの関係」が出ます。Windows / Linux の切り替えも試してみてください。
+        </div>
+        <div class="note">
+          <strong>公式未確認の点</strong><br>
+          Windows コンテナでの <code>host</code> / <code>none</code> ネットワーク、bind mount の細かい仕様、tmpfs の可否は、今回の公式ページでは確認できていません。
+        </div>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li><a href="https://docs.docker.com/engine/storage/" target="_blank" rel="noopener">Docker Docs「Storage」</a> … ボリューム・bind mount・tmpfs の保存先の違い</li>
+          </ul>
+        </div>
+        <p class="story-foot">
+          <strong>実際のアプリではどうなる？</strong> → <a href="example.html">実例：Webアプリ ＋ DB を Docker で動かす</a>
+        </p>
+        <p class="story-foot">
+          もっと詳しく（1ステップずつ動かして確認）：<a href="details.html">補足ページ</a>へ ― <a href="details.html#t-vm">VM とコンテナ</a> ／ <a href="details.html#t-kernel">Windows / Linux・分離モード</a> ／ <a href="details.html#t-layers">Dockerfile → イメージ</a> ／ <a href="details.html#t-cache">ビルドキャッシュ</a> ／ <a href="details.html#t-bridge">bridge の名前解決</a> ／ <a href="details.html#t-publish">ポート公開</a> ／ <a href="details.html#t-volume">ボリューム</a> ／ <a href="details.html#storage-compare">置き場所の比較表</a> ／ <a href="details.html#sources">出典一覧</a>
+        </p>
+      </section>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="js/terms.js"></script>
+<script src="js/stepper.js"></script>
+<script src="js/termmap.js"></script>
+<script src="js/story.js"></script>
+</body>
+</html>

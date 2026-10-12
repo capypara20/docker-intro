@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>実例：Webアプリ＋DB を Docker で動かす</title>
+  <meta name="description" content="Web アプリ と DB を Docker で動かす実例を、Linux コンテナと Windows コンテナに分けて、1枚の図が組み上がる形で解説。公式ドキュメントの出典つき">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/scenes.css">
+  <link rel="stylesheet" href="css/termmap.css">
+  <link rel="stylesheet" href="css/story.css">
+</head>
+<body>
+<div class="wrap wide">
+
+  <header class="story-head">
+    <h1>実例：Webアプリ ＋ DB を Docker で動かす</h1>
+    <p>「全体像」の知識が、実際のアプリではこう並びます。<strong>Linux コンテナ</strong>と <strong>Windows コンテナ</strong>で話が分かれるので、図の上のスイッチで切り替えてください。右を読み進める（スクロールする）と、1枚の図が組み上がります。
+      （<a href="index.html">← 全体像の図に戻る</a>）</p>
+  </header>
+
+  <div class="story" data-story>
+
+    <!-- =================== 左：1枚の図 =================== -->
+    <div class="story-diagram">
+      <ol class="levelbar" aria-label="図の詳しさの段階"></ol>
+      <p class="level-title" aria-live="polite"></p>
+
+      <div data-story-master data-variant="lin">
+        <div class="termmap">
+
+          <div class="m-top">
+            <div class="m-top-item">
+              <div class="tm host" data-term="browser">
+                <button class="tm-label" type="button"><span class="tm-name">ブラウザ（あなた）</span><span class="tm-note">アプリを使う</span></button>
+              </div>
+              <span class="tm-arrow" data-show="5">
+                <span data-variant="lin">↓ localhost:3000 を開く</span>
+                <span data-variant="win">↓ localhost:8080 を開く</span>
+              </span>
+            </div>
+
+            <fieldset class="m-variant">
+              <legend>どちらのコンテナ？</legend>
+              <label><input type="radio" name="variant" value="lin" checked> Linux コンテナ</label>
+              <label><input type="radio" name="variant" value="win"> Windows コンテナ</label>
+            </fieldset>
+
+            <div class="m-top-item right">
+              <div class="tm host" data-term="registry" data-variant="lin" data-state="1:ghost;2:on" data-hl="2">
+                <button class="tm-label" type="button"><span class="tm-name">レジストリ</span><span class="tm-note">Docker Hub など</span></button>
+              </div>
+              <div class="tm host" data-term="mcr" data-variant="win" data-state="1:ghost;2:on" data-hl="2">
+                <button class="tm-label" type="button"><span class="tm-name">mcr.microsoft.com</span><span class="tm-note">Microsoft のレジストリ</span></button>
+              </div>
+              <span class="tm-arrow" data-show="2">
+                <span data-variant="lin">⇅ postgres を pull（取得）</span>
+                <span data-variant="win">⇅ ベースイメージを pull（取得）</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="tm win" data-term="compose_frame" data-state="1:off;7:on" data-hl="7">
+            <button class="tm-label" type="button"><span class="tm-name">compose.yaml（Docker Compose）</span><span class="tm-note">アプリ全体を1ファイルで管理する</span></button>
+            <div class="tm-body col">
+
+              <div class="tm host mhost" data-term="dockerhost">
+                <button class="tm-label" type="button"><span class="tm-name">Docker ホスト（あなたの PC）</span></button>
+                <div class="m-grid ex-grid">
+
+                  <!-- イメージ（Linux） -->
+                  <div class="tm-col ex-images" data-variant="lin">
+                    <div class="tm img" data-term="web_img" data-state="1:ghost;2:on" data-hl="2">
+                      <button class="tm-label" type="button"><span class="tm-name">web イメージ</span><span class="tm-note">自分の Dockerfile から作る</span></button>
+                      <div class="tm-body">
+                        <div class="tm host" data-term="dockerfile" data-show="2"><button class="tm-label" type="button"><span class="tm-name">Dockerfile</span><span class="tm-note">build: .</span></button></div>
+                      </div>
+                    </div>
+                    <div class="tm img" data-term="db_img" data-state="1:ghost;2:on" data-hl="2">
+                      <button class="tm-label" type="button"><span class="tm-name">postgres イメージ</span><span class="tm-note">公式のものを取ってくる</span></button>
+                      <div class="tm-body">
+                        <div class="tm host" data-term="registry" data-show="2"><button class="tm-label" type="button"><span class="tm-name">Docker Hub</span><span class="tm-note">image: postgres:17</span></button></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- イメージ（Windows） -->
+                  <div class="tm-col ex-images" data-variant="win">
+                    <div class="tm img" data-term="winweb_img" data-state="1:ghost;2:on" data-hl="2">
+                      <button class="tm-label" type="button"><span class="tm-name">web イメージ</span><span class="tm-note">Windows のベースイメージの上に作る</span></button>
+                      <div class="tm-body">
+                        <div class="tm host" data-term="dockerfile" data-show="2"><button class="tm-label" type="button"><span class="tm-name">Dockerfile</span><span class="tm-note">FROM …servercore:ltsc2025</span></button></div>
+                      </div>
+                    </div>
+                    <div class="tm host unk" data-term="win_db_unknown" data-state="1:ghost;2:on" data-hl="2">
+                      <button class="tm-label" type="button"><span class="tm-name">DB のイメージ？</span><span class="tm-note">公式の例が見つからない</span></button>
+                    </div>
+                  </div>
+
+                  <!-- ネットワーク（Linux） -->
+                  <div class="tm net ex-net" data-variant="lin" data-term="proj_net" data-state="1:ghost;4:on" data-hl="4">
+                    <button class="tm-label" type="button"><span class="tm-name">ネットワーク（&lt;プロジェクト名&gt;_default）</span><span class="tm-note">Compose が自動で作る</span></button>
+                    <div class="tm-body nowrap top">
+                      <div class="tm ctr" data-term="web_ctr" data-state="1:ghost;3:on" data-hl="3">
+                        <button class="tm-label" type="button"><span class="tm-name">web コンテナ</span><span class="tm-note">画面と処理</span></button>
+                        <div class="ex-ctr-body">
+                          <div class="tm host" data-term="app" data-show="3"><button class="tm-label" type="button"><span class="tm-name">アプリ（Node.js など）</span></button></div>
+                          <div class="tm net" data-term="publish" data-show="5" data-hl="5"><button class="tm-label" type="button"><span class="tm-name">ports 3000:3000</span><span class="tm-note">ホスト:コンテナ</span></button></div>
+                        </div>
+                      </div>
+                      <span class="tm-arrow" data-show="4">→<small>db:5432</small></span>
+                      <div class="tm ctr" data-term="db_ctr" data-state="1:ghost;3:on" data-hl="3">
+                        <button class="tm-label" type="button"><span class="tm-name">db コンテナ</span><span class="tm-note">データの保存</span></button>
+                        <div class="ex-ctr-body">
+                          <div class="tm host" data-term="dbms" data-show="3"><button class="tm-label" type="button"><span class="tm-name">PostgreSQL</span></button></div>
+                          <div class="tm host" data-term="env_pw" data-show="3"><button class="tm-label" type="button"><span class="tm-name">POSTGRES_PASSWORD</span><span class="tm-note">必須の環境変数</span></button></div>
+                          <div class="tm net" data-term="nopublish" data-show="5" data-hl="5"><button class="tm-label" type="button"><span class="tm-name">ポートは公開しない</span><span class="tm-note">外からは直接届かない</span></button></div>
+                          <div class="tm net" data-term="mountpoint" data-show="6" data-hl="6"><button class="tm-label" type="button"><span class="tm-name">…/postgresql/data</span><span class="tm-note">← db-data を見せる</span></button></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ネットワーク（Windows） -->
+                  <div class="tm net ex-net" data-variant="win" data-term="drv_nat" data-state="1:ghost;4:on" data-hl="4">
+                    <button class="tm-label" type="button"><span class="tm-name">ネットワーク：nat</span><span class="tm-note">Windows の既定</span></button>
+                    <div class="tm-body nowrap top">
+                      <div class="tm ctr" data-term="win_web_ctr" data-state="1:ghost;3:on" data-hl="3">
+                        <button class="tm-label" type="button"><span class="tm-name">web コンテナ</span><span class="tm-note">Windows コンテナ</span></button>
+                        <div class="ex-ctr-body">
+                          <div class="tm host" data-term="app" data-show="3"><button class="tm-label" type="button"><span class="tm-name">アプリ（IIS・.NET など）</span></button></div>
+                          <div class="tm net" data-term="publish" data-show="5" data-hl="5"><button class="tm-label" type="button"><span class="tm-name">ports 8080:80</span><span class="tm-note">ホスト:コンテナ</span></button></div>
+                          <div class="tm net" data-term="mountpoint" data-show="6" data-hl="6"><button class="tm-label" type="button"><span class="tm-name">c:\data</span><span class="tm-note">← ボリュームを見せる</span></button></div>
+                        </div>
+                      </div>
+                      <span class="tm-arrow" data-show="4">→<small>DB の場所</small></span>
+                      <div class="tm ctr unk" data-term="win_db_unknown" data-state="1:ghost;3:on" data-hl="3">
+                        <button class="tm-label" type="button"><span class="tm-name">DB（別の形で用意）</span><span class="tm-note">公式の DB コンテナ例なし</span></button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ボリューム -->
+                  <div class="tm vol ex-vol" data-variant="lin" data-term="db_volume" data-state="1:ghost;6:on" data-hl="6">
+                    <button class="tm-label" type="button"><span class="tm-name">db-data（ボリューム）</span><span class="tm-note">DB のデータを置く。コンテナを消しても残る</span></button>
+                  </div>
+                  <div class="tm vol ex-vol" data-variant="win" data-term="win_volume" data-state="1:ghost;6:on" data-hl="6">
+                    <button class="tm-label" type="button"><span class="tm-name">ボリューム / bind mount</span><span class="tm-note">例：c:\ContainerData → c:\data。コンテナを消しても残る</span></button>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="tm-panel" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== 右：章 =================== -->
+    <div class="chapters">
+      <div class="panel-slot"></div>
+
+      <!-- ============ Lv1 ============ -->
+      <section class="chapter" data-title="こんなアプリ">
+        <h2><span class="lv-tag">Lv1</span>こんなアプリを動かす</h2>
+
+        <div data-variant="lin">
+          <p>ToDo アプリのような、<strong>Web アプリ ＋ データベース</strong>。ブラウザで開く画面と処理（<strong>web</strong>）と、データを保存する<strong>データベース</strong>（PostgreSQL）の2つでできています。</p>
+          <p>Docker では、役割ごとに<strong>コンテナを分けます</strong>。公式にも「each container should do one thing and do it well」（各コンテナは1つのことをうまくやるべき）とあります。</p>
+        </div>
+
+        <div data-variant="win">
+          <p>Windows コンテナでも、<strong>Web アプリ</strong>は動かせます。ただし、<strong>DB コンテナの公式の例は見つかりませんでした</strong>。そこが、Linux コンテナとの一番の違いです。</p>
+          <ul>
+            <li><strong>web</strong>：Windows のベースイメージ（レジストリは <code>mcr.microsoft.com</code>）の上に作れる。</li>
+            <li><strong>db</strong>：postgres の公式イメージ（Docker Hub）のページには、Windows の記載がない。SQL Server の公式コンテナイメージは、複数の解説で Linux 向けとされている。<span class="badge unk">公式ページでの確認は未了</span></li>
+          </ul>
+          <p>図の<span class="badge unk">赤い点線</span>の箱が、「公式の例が見つからなかった」部分です。</p>
+          <div class="note">
+            <strong>Windows コンテナで DB 付きにする形（筆者の整理・公式の例ではありません）</strong><br>
+            ① ホストや別のマシンで動く DB に接続する　② DB だけを Linux コンテナで別に動かす　③ ファイル型の DB をボリュームに置く
+          </div>
+        </div>
+
+        <div class="added">
+          <strong>図の見方</strong>
+          点線の箱は「これから入る部品」です。章を読み進めると、全体像の図にあった部品が、1つずつ実際の名前で現れます。
+        </div>
+        <div class="note">
+          <strong>この例について</strong><br>
+          <span data-variant="lin">公式ガイド（Node.js アプリ ＋ PostgreSQL）を簡略化した<strong>説明用の例</strong>です。サービス名や値は、そのまま使えるとは限りません。</span>
+          <span data-variant="win">Windows コンテナ側は、Microsoft Learn の公式ページ（分離モード・ネットワーク・永続ストレージ）に書かれている内容を、同じ形に当てはめたものです。<strong>丸ごと動かせる公式の例ではありません</strong>。</span>
+        </div>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li><a href="https://docs.docker.com/get-started/docker-concepts/running-containers/multi-container-applications/" target="_blank" rel="noopener">Docker Docs「Multi-container applications」</a> … 1コンテナ1役割</li>
+            <li><a href="https://docs.docker.com/guides/nodejs/develop/" target="_blank" rel="noopener">Docker Docs「Develop your Node.js app」</a> … アプリ ＋ PostgreSQL の構成例（Linux）</li>
+            <li><a href="https://hub.docker.com/_/postgres" target="_blank" rel="noopener">Docker Hub「postgres」</a> … 対応アーキテクチャの一覧に Windows の記載がない</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============ Lv2 ============ -->
+      <section class="chapter" data-title="イメージ">
+        <h2><span class="lv-tag">Lv2</span>イメージを用意する</h2>
+        <span class="maps-to">全体像の Lv4（イメージ・レジストリ）にあたる</span>
+
+        <div data-variant="lin">
+          <ul>
+            <li><strong>web</strong>：あなたの <strong>Dockerfile から</strong>イメージを作る。</li>
+            <li><strong>db</strong>：自分では作らない。<strong>レジストリ（Docker Hub）にある公式の postgres イメージ</strong>を取ってくる（pull）。</li>
+          </ul>
+          <p><code>compose.yaml</code> には、こう書きます。</p>
+<pre class="code yaml" aria-label="compose.yaml の一部"><span class="cl-line">services:</span><span class="cl-line">  web:</span><span class="cl-line add">    build: .            <span class="cm"># 自分の Dockerfile からイメージを作る</span></span><span class="cl-line">  db:</span><span class="cl-line add">    image: postgres:17  <span class="cm"># レジストリの公式イメージを使う</span></span></pre>
+        </div>
+
+        <div data-variant="win">
+          <ul>
+            <li><strong>web</strong>：<strong>Windows のベースイメージの上に</strong>作る。Rozeさんの <code>dockerimage</code> と同じ形です。</li>
+            <li><strong>ベースイメージ</strong>は、Microsoft のレジストリ <code>mcr.microsoft.com</code> から取ってくる。</li>
+            <li><strong>db</strong>：公式の DB イメージの例が見つからない（図の赤い点線）。</li>
+          </ul>
+<pre class="code yaml" aria-label="Dockerfile の例"><span class="cl-line add">FROM mcr.microsoft.com/windows/servercore:ltsc2025</span><span class="cl-line">COPY app C:/app/</span><span class="cl-line">CMD ["…アプリを起動するコマンド…"]</span></pre>
+          <div class="note">
+            <strong>タグ（ltsc2025）は、ホストの Windows と合わせる</strong><br>
+            プロセス分離では、ホストとイメージのビルド番号が違うと、起動がブロックされます。Hyper-V 分離なら、合わせなくても動かせます。（Windows 11 では例外もあります）
+          </div>
+        </div>
+
+        <div class="added">
+          <strong>ここで増えたもの</strong>
+          <span data-variant="lin">web イメージ（自作）／ postgres イメージ（公式・レジストリから取得）</span>
+          <span data-variant="win">web イメージ（Windows のベースイメージの上に自作）／ ベースイメージは mcr.microsoft.com から取得</span>
+        </div>
+        <p class="more">▶ もっと詳しく（動きで見る）：<a href="details.html#t-layers">Dockerfile → イメージ → コンテナ</a> ／ <a href="details.html#t-cache">ビルドキャッシュ</a></p>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li data-variant="lin"><a href="https://hub.docker.com/_/postgres" target="_blank" rel="noopener">Docker Hub「postgres」</a> … PostgreSQL の公式イメージ</li>
+            <li data-variant="win"><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/" target="_blank" rel="noopener">Microsoft Learn「About Windows containers」</a> … ベースイメージ（Windows / Server Core / Nano Server）</li>
+            <li data-variant="win"><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility" target="_blank" rel="noopener">Microsoft Learn「Windows container version compatibility」</a> … ホストとイメージの版の合わせ方</li>
+            <li><a href="https://docs.docker.com/get-started/docker-overview/" target="_blank" rel="noopener">Docker Docs「Docker overview」</a> … レジストリからイメージを取得する</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============ Lv3 ============ -->
+      <section class="chapter" data-title="コンテナ">
+        <h2><span class="lv-tag">Lv3</span>イメージからコンテナを作る</h2>
+        <span class="maps-to">全体像の Lv5（コンテナ）にあたる</span>
+
+        <div data-variant="lin">
+          <p>それぞれのイメージから、<strong>web コンテナ</strong>と <strong>db コンテナ</strong>ができます。</p>
+          <p>PostgreSQL の公式イメージは、<code>POSTGRES_PASSWORD</code> という環境変数が<strong>必須</strong>です（公式：「The only variable required is POSTGRES_PASSWORD」）。</p>
+<pre class="code yaml" aria-label="compose.yaml の一部"><span class="cl-line">  db:</span><span class="cl-line">    image: postgres:17</span><span class="cl-line add">    environment:</span><span class="cl-line add">      POSTGRES_PASSWORD: example   <span class="cm"># 必須。例では直接書いている（学習用）</span></span></pre>
+          <div class="note">
+            <strong>パスワードを直接書くのは、学習用です</strong><br>
+            公式ガイドでは、パスワードを環境変数に直接書かず、<code>secrets</code>（秘密情報用の仕組み）のファイルから読み込んでいます。
+          </div>
+        </div>
+
+        <div data-variant="win">
+          <p>web イメージから、<strong>web コンテナ</strong>ができます。Windows コンテナには、<strong>分離モードが2つ</strong>あります。</p>
+          <ul>
+            <li><strong>プロセス分離</strong>：ホストの Windows カーネルを共有する。<code>--isolation=process</code></li>
+            <li><strong>Hyper-V 分離</strong>：コンテナごとに軽量VM。<code>--isolation=hyperv</code></li>
+          </ul>
+          <p>既定は、Windows Server ではプロセス分離、Windows 10 Pro / Enterprise では Hyper-V 分離です。Rozeさんの PC（Windows 11 Home）の既定は <code>hyperv</code> でした（2026/10/5 の実機確認）。</p>
+          <div class="note">
+            <strong>DB コンテナは、図では「別の形で用意」</strong><br>
+            Linux 版の db コンテナ（postgres ＋ 必須の環境変数）に当たる部分は、Windows コンテナでは、Lv1 の ①〜③ のように別の形で用意します。
+          </div>
+        </div>
+
+        <div class="added">
+          <strong>ここで増えたもの</strong>
+          <span data-variant="lin">web コンテナ ← web イメージ ／ db コンテナ ← postgres イメージ ＋ 必須の環境変数</span>
+          <span data-variant="win">web コンテナ ← web イメージ（プロセス分離 または Hyper-V 分離）</span>
+        </div>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li data-variant="lin"><a href="https://hub.docker.com/_/postgres" target="_blank" rel="noopener">Docker Hub「postgres」</a> … 必須の環境変数</li>
+            <li data-variant="lin"><a href="https://docs.docker.com/guides/nodejs/develop/" target="_blank" rel="noopener">Docker Docs「Develop your Node.js app」</a> … secrets を使う例</li>
+            <li data-variant="win"><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/hyperv-container" target="_blank" rel="noopener">Microsoft Learn「Isolation modes」</a> … 2つの分離モード／既定値</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============ Lv4 ============ -->
+      <section class="chapter" data-title="ネットワーク">
+        <h2><span class="lv-tag">Lv4</span>ネットワークでつなぐ</h2>
+        <span class="maps-to">全体像の Lv7（ネットワーク）にあたる</span>
+
+        <div data-variant="lin">
+          <p>Docker Compose は、<strong>ネットワークを自動で作ります</strong>（<code>&lt;プロジェクト名&gt;_default</code> という bridge）。全サービスがつながり、各サービスは名前を DNS に登録するので、<strong>サービス名で呼び合えます</strong>。</p>
+          <p>公式の例：「The <code>web</code> service can connect to the database at <code>postgres://db:5432</code>.」</p>
+<pre class="code yaml" aria-label="compose.yaml の一部"><span class="cl-line">  web:</span><span class="cl-line">    build: .</span><span class="cl-line add">    environment:</span><span class="cl-line add">      POSTGRES_HOST: db   <span class="cm"># DB の場所 ＝ サービス名「db」（名前はアプリ側の決め事の例）</span></span><span class="cl-line cm"># networks: は書かなくてよい（Compose が自動で作る）</span></pre>
+          <ul>
+            <li>接続先は <code>db:5432</code>。<strong>IP アドレスではなく、サービス名</strong>で書きます（IP は、起動や再作成のたびに変わりうるため）。</li>
+            <li>コンテナどうしの通信では、<strong>コンテナ側のポート</strong>（5432）を使います。</li>
+          </ul>
+        </div>
+
+        <div data-variant="win">
+          <p>Windows コンテナの既定のネットワークは、bridge ではなく <strong>nat</strong> です。コンテナは内部の Hyper-V スイッチにつながり、サブネットから IP アドレスを受け取ります。</p>
+          <ul>
+            <li><strong>名前での呼び合い</strong>：nat では「ローカルのサービス検出」に対応しています（公式の表：Local Service Discovery = YES）。</li>
+            <li><strong>制限</strong>：サブネットをまたぐ通信は非対応。別のホストのコンテナへは、ホストのポートを公開して届かせます。</li>
+          </ul>
+          <p>自分用のネットワークを作る例（公式）：</p>
+<pre class="code yaml" aria-label="ネットワーク作成の例"><span class="cl-line">docker network create -d "nat" --subnet "10.244.0.0/24" my_nat</span></pre>
+          <div class="note">
+            <strong>DB の接続先は、「DB をどう用意したか」で決まります</strong><br>
+            ホストの DB なら、ホストの住所を指定します。DB だけを別のコンテナにするなら、その公開ポートへ。どの形でも、<strong>コンテナの中から見た「localhost」は、そのコンテナ自身</strong>を指します。<span class="badge inf">一般的な説明</span>
+          </div>
+        </div>
+
+        <div class="added">
+          <strong>ここで増えたもの</strong>
+          <span data-variant="lin">ネットワーク ⊃ web コンテナ ＋ db コンテナ ／ web → db:5432</span>
+          <span data-variant="win">ネットワーク（nat）⊃ web コンテナ ／ web → DB の場所</span>
+        </div>
+        <p class="more">▶ もっと詳しく（動きで見る）：<a href="details.html#t-bridge">bridge の名前解決</a> ／ <a href="details.html#t-drivers">ドライバーの種類</a></p>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li data-variant="lin"><a href="https://docs.docker.com/compose/how-tos/networking/" target="_blank" rel="noopener">Docker Docs「Networking in Compose」</a> … 既定のネットワークを自動で作る／サービス名で見つける／コンテナ側のポートを使う</li>
+            <li data-variant="win"><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/network-drivers-topologies" target="_blank" rel="noopener">Microsoft Learn「Windows container network drivers」</a> … nat が既定／サービス検出の表／ネットワーク作成の例</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============ Lv5 ============ -->
+      <section class="chapter" data-title="ポート公開">
+        <h2><span class="lv-tag">Lv5</span>ブラウザから見えるようにする</h2>
+        <span class="maps-to">全体像の Lv7（ポート公開 <code>-p</code>）にあたる</span>
+
+        <div data-variant="lin">
+          <p><strong>web</strong> は、<code>ports</code> で<strong>ホストの 3000 番に公開</strong>します。ブラウザは <code>localhost:3000</code> を開きます。</p>
+          <p><strong>db</strong> は、<code>ports</code> を<strong>書きません</strong>。ホストの外（ブラウザなど）からは直接届かず、同じネットワークの web からだけ <code>db:5432</code> で届きます。</p>
+<pre class="code yaml" aria-label="compose.yaml の一部"><span class="cl-line">  web:</span><span class="cl-line">    build: .</span><span class="cl-line add">    ports:</span><span class="cl-line add">      - "3000:3000"      <span class="cm"># ホスト:コンテナ</span></span><span class="cl-line">  db:</span><span class="cl-line cm">    # ports は書かない ＝ 外には出さない</span></pre>
+          <ul>
+            <li><code>"3000:3000"</code> は「<strong>ホスト側:コンテナ側</strong>」。左がホスト、右がコンテナです。</li>
+            <li>公式：「The host port is only used when accessing the service from outside the network.」</li>
+          </ul>
+        </div>
+
+        <div data-variant="win">
+          <p>nat は、<strong>ホストからコンテナへのポート転送（マッピング）</strong>に対応しています。web を、ホストの 8080 番に公開します。ブラウザは <code>localhost:8080</code> を開きます。</p>
+<pre class="code yaml" aria-label="docker run の例"><span class="cl-line add">docker run -d -p 8080:80 &lt;web イメージ&gt;   <span class="cm"># ホスト:コンテナ</span></span></pre>
+          <ul>
+            <li><code>8080:80</code> は「<strong>ホスト側:コンテナ側</strong>」。Linux コンテナと、書き方も同じです。</li>
+            <li>80 番は、IIS など Web サーバーの代表的な待ち受けポートです（例）。</li>
+          </ul>
+        </div>
+
+        <div class="added">
+          <strong>ここで増えたもの</strong>
+          <span data-variant="lin">ブラウザ → ホストの 3000 番 → web コンテナ ／ db は外に出さない</span>
+          <span data-variant="win">ブラウザ → ホストの 8080 番 → web コンテナ（nat のポート転送）</span>
+        </div>
+        <p class="more">▶ もっと詳しく（動きで見る）：<a href="details.html#t-publish">ポート公開</a></p>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li data-variant="lin"><a href="https://docs.docker.com/compose/how-tos/networking/" target="_blank" rel="noopener">Docker Docs「Networking in Compose」</a> … <code>HOST:CONTAINER</code> の意味</li>
+            <li data-variant="win"><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/network-drivers-topologies" target="_blank" rel="noopener">Microsoft Learn「Windows container network drivers」</a> … nat：「Port forwarding / mapping from the container host to container endpoints is supported」</li>
+            <li data-variant="win"><a href="https://docs.docker.com/engine/network/" target="_blank" rel="noopener">Docker Docs「Networking overview」</a> … <code>--publish</code>（<code>-p</code>）</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============ Lv6 ============ -->
+      <section class="chapter" data-title="ボリューム">
+        <h2><span class="lv-tag">Lv6</span>データを残す</h2>
+        <span class="maps-to">全体像の Lv8（ボリューム）にあたる</span>
+
+        <div data-variant="lin">
+          <p>DB コンテナの書き込み層に保存すると、<strong>コンテナを消すとデータも消えます</strong>。そこで、<strong>ボリューム</strong> <code>db-data</code> を、DB のデータ置き場にマウントします。</p>
+<pre class="code yaml" aria-label="compose.yaml の一部"><span class="cl-line">  db:</span><span class="cl-line">    image: postgres:17</span><span class="cl-line add">    volumes:</span><span class="cl-line add">      - db-data:/var/lib/postgresql/data</span><span class="cl-line add">volumes:</span><span class="cl-line add">  db-data:               <span class="cm"># ボリュームを定義する</span></span></pre>
+          <ul>
+            <li><code>docker compose down</code>：コンテナとネットワークを片付ける。<strong>名前付きボリュームは、既定では消えません</strong>。</li>
+            <li><code>docker compose down --volumes</code>：ボリュームも<strong>消えます</strong>。</li>
+          </ul>
+          <div class="note">
+            <strong>つまずきやすい点：マウント先は、PostgreSQL のバージョンで違う</strong><br>
+            17 以前は <code>/var/lib/postgresql/data</code>、18 以降は <code>/var/lib/postgresql</code> にマウントします。公式は「17 以下で <code>/var/lib/postgresql</code> にマウントすると、コンテナを作り直したときにデータが残らない」と警告しています。
+          </div>
+        </div>
+
+        <div data-variant="win">
+          <p>Windows コンテナでも、<strong>ボリューム</strong>と <strong>bind mount</strong> が使えます。違いは、<strong>Windows のパス</strong>で書くことです。</p>
+          <p><strong>名前付きボリューム</strong>（公式の手順）：</p>
+<pre class="code yaml" aria-label="名前付きボリュームの例"><span class="cl-line add">docker volume create unwound</span><span class="cl-line add">docker run -v unwound:c:\data &lt;イメージ&gt;   <span class="cm"># c:\data にマウント</span></span></pre>
+          <p><strong>bind mount</strong>（ホストのフォルダを見せる・公式）：</p>
+<pre class="code yaml" aria-label="bind mount の例"><span class="cl-line">docker run -v c:\ContainerData:c:\data:RO   <span class="cm"># 読み取り専用</span></span><span class="cl-line">docker run -v c:\ContainerData:c:\data:RW   <span class="cm"># 読み書き可（既定）</span></span></pre>
+          <div class="note">
+            <strong>Windows 特有の注意</strong><br>
+            ・<strong>権限</strong>：Hyper-V 分離では LocalSystem、プロセス分離ではコンテナ内のプロセスの権限（ACL）でアクセスされます。「アクセス拒否」になったら、ホスト側のフォルダの権限を確認します。<br>
+            ・<strong>パス</strong>：コンテナ側のパスは、小文字に変換されます（<code>c:\MyData</code> → <code>c:\mydata</code>）。<br>
+            ・<strong>安全</strong>：<code>C:\</code> のような重要なディレクトリを、信頼できないコンテナに bind mount してはいけません。
+          </div>
+        </div>
+
+        <div class="added">
+          <strong>ここで増えたもの</strong>
+          <span data-variant="lin">ボリューム db-data ← db コンテナのマウント先</span>
+          <span data-variant="win">ボリューム（または bind mount）← web コンテナの c:\data</span>
+        </div>
+        <p class="more">▶ もっと詳しく（動きで見る）：<a href="details.html#t-volume">ボリュームで残る流れ</a> ／ <a href="details.html#storage-compare">置き場所の比較表</a></p>
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li data-variant="lin"><a href="https://hub.docker.com/_/postgres" target="_blank" rel="noopener">Docker Hub「postgres」</a> … データの保存先とマウント先</li>
+            <li data-variant="lin"><a href="https://docs.docker.com/reference/cli/docker/compose/down/" target="_blank" rel="noopener">Docker Docs「docker compose down」</a> … 名前付きボリュームは既定では削除されない／<code>--volumes</code></li>
+            <li data-variant="win"><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/persistent-storage" target="_blank" rel="noopener">Microsoft Learn「Persistent storage in containers」</a> … bind mount・名前付きボリュームの例／権限／パスの注意</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============ Lv7 ============ -->
+      <section class="chapter" data-title="完成：Compose">
+        <h2><span class="lv-tag">Lv7</span>全部を1ファイルに：Docker Compose</h2>
+
+        <div data-variant="lin">
+          <p>ここまでの設定を、<strong>1つの <code>compose.yaml</code></strong> にまとめます。複数の <code>docker run</code> を打たなくても、1コマンドで、ネットワークと全コンテナが作られます。</p>
+<pre class="code yaml" aria-label="完成した compose.yaml"><span class="cl-line">services:</span><span class="cl-line">  web:</span><span class="cl-line">    build: .</span><span class="cl-line">    ports:</span><span class="cl-line">      - "3000:3000"</span><span class="cl-line">    environment:</span><span class="cl-line">      POSTGRES_HOST: db</span><span class="cl-line">      POSTGRES_USER: postgres</span><span class="cl-line">      POSTGRES_DB: example</span><span class="cl-line">      POSTGRES_PASSWORD: example</span><span class="cl-line">    depends_on:</span><span class="cl-line">      - db              <span class="cm"># db を先に起動する</span></span><span class="cl-line">  db:</span><span class="cl-line">    image: postgres:17</span><span class="cl-line">    volumes:</span><span class="cl-line">      - db-data:/var/lib/postgresql/data</span><span class="cl-line">    environment:</span><span class="cl-line">      POSTGRES_DB: example</span><span class="cl-line">      POSTGRES_PASSWORD: example</span><span class="cl-line">volumes:</span><span class="cl-line">  db-data:</span></pre>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead><tr><th>やりたいこと</th><th>コマンド</th></tr></thead>
+              <tbody>
+                <tr><th>ビルドして、まとめて起動</th><td><code>docker compose up -d --build</code></td></tr>
+                <tr><th>状態を見る</th><td><code>docker compose ps</code></td></tr>
+                <tr><th>止めて片付ける（ボリュームは残る）</th><td><code>docker compose down</code></td></tr>
+                <tr><th>ボリュームも消す</th><td><code>docker compose down --volumes</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="note">
+            <strong>補足</strong><br>
+            ・環境変数の名前（<code>POSTGRES_HOST</code> など）は、<strong>アプリ側の決め事</strong>の例です。実際のコードに合わせてください。<br>
+            ・<code>depends_on</code> は起動順の指定です。DB の「準備完了」まで待つには、公式ガイドのように <code>healthcheck</code> と <code>condition: service_healthy</code> を使います。<br>
+            ・Rozeさんの PC は今 Windows コンテナのモードです（2026/10/5 の実機確認）。この Linux 版を試すには、<strong>Linux コンテナ（WSL 2）に切り替える</strong>必要があります。
+          </div>
+        </div>
+
+        <div data-variant="win">
+          <p>Windows コンテナでも、<strong>Docker Compose の考え方は同じ</strong>です（サービス・ポート・ボリュームを1ファイルに書く）。ただし、今回の公式ページでは、次の点が<strong>確認できていません</strong>。</p>
+          <ul>
+            <li>Windows コンテナの Compose ファイルの<strong>完成例</strong>（公式）<span class="badge unk">公式未確認</span></li>
+            <li>Compose の <code>volumes</code> で、<strong>Windows のパス（<code>c:\data</code>）をどう書くか</strong><span class="badge unk">公式未確認</span></li>
+            <li>DB コンテナの公式の例（Lv1）<span class="badge unk">公式未確認</span></li>
+          </ul>
+          <p>そのため、Windows 版では、<strong>完成した compose.yaml を載せていません</strong>。確認できた部分（Lv2〜Lv6 の <code>docker run</code> / <code>docker network</code> / <code>docker volume</code>）を、組み合わせて試してください。</p>
+        </div>
+
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>項目</th><th>Linux コンテナ</th><th>Windows コンテナ</th></tr></thead>
+            <tbody>
+              <tr><th>ベースのイメージ</th><td>node など（Docker Hub）</td><td>servercore など（mcr.microsoft.com）</td></tr>
+              <tr><th>DB</th><td>postgres の公式イメージ</td><td>公式の例なし（別の形で用意）</td></tr>
+              <tr><th>ネットワーク（既定）</th><td>bridge（Compose は <code>&lt;プロジェクト名&gt;_default</code>）</td><td>nat</td></tr>
+              <tr><th>ポート公開</th><td><code>"3000:3000"</code></td><td><code>-p 8080:80</code>（nat のポート転送）</td></tr>
+              <tr><th>データの置き場</th><td><code>/var/lib/postgresql/data</code> など</td><td><code>c:\data</code> など（Windows のパス）</td></tr>
+              <tr><th>カーネルとの関係</th><td>Linux のカーネル（Windows PC では WSL 2）</td><td>プロセス分離：ホストと共有 ／ Hyper-V 分離：専用</td></tr>
+              <tr><th>版の合わせ方</th><td>（特になし）</td><td>プロセス分離は、ホストとタグを合わせる</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="added">
+          <strong>これで完成</strong>
+          図の箱をクリックすると、「何の中にある？」「何から作られる？」が出ます。スイッチで切り替えて、Linux と Windows の違いも確かめてください。
+        </div>
+
+        <div class="sources">
+          <strong>出典</strong>
+          <ul>
+            <li data-variant="lin"><a href="https://docs.docker.com/get-started/docker-concepts/running-containers/multi-container-applications/" target="_blank" rel="noopener">Docker Docs「Multi-container applications」</a> … Compose は構成を1つの YAML にまとめる／<code>docker compose up -d --build</code></li>
+            <li data-variant="lin"><a href="https://docs.docker.com/guides/nodejs/develop/" target="_blank" rel="noopener">Docker Docs「Develop your Node.js app」</a> … depends_on と healthcheck、secrets、ボリュームの例</li>
+            <li data-variant="lin"><a href="https://docs.docker.com/reference/cli/docker/compose/down/" target="_blank" rel="noopener">Docker Docs「docker compose down」</a></li>
+            <li data-variant="win"><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/hyperv-container" target="_blank" rel="noopener">Microsoft Learn「Isolation modes」</a></li>
+            <li data-variant="win"><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/network-drivers-topologies" target="_blank" rel="noopener">Microsoft Learn「Windows container network drivers」</a></li>
+            <li data-variant="win"><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/persistent-storage" target="_blank" rel="noopener">Microsoft Learn「Persistent storage in containers」</a></li>
+          </ul>
+        </div>
+        <p class="story-foot">
+          <a href="index.html">← 全体像の図に戻る</a> ／ <a href="details.html">補足：動きで見る詳細</a>
+        </p>
+      </section>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="js/terms.js"></script>
+<script src="js/stepper.js"></script>
+<script src="js/termmap.js"></script>
+<script src="js/story.js"></script>
+</body>
+</html>
