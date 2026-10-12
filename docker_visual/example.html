@@ -220,7 +220,7 @@
 
         <div data-variant="win">
           <ul>
-            <li><strong>web</strong>：<strong>Windows のベースイメージの上に</strong>作る。Rozeさんの <code>dockerimage</code> と同じ形です。</li>
+            <li><strong>web</strong>：<strong>Windows のベースイメージの上に</strong>作る。このリポジトリの <code>docker/dockerimage</code> と同じ形です。</li>
             <li><strong>ベースイメージ</strong>は、Microsoft のレジストリ <code>mcr.microsoft.com</code> から取ってくる。</li>
             <li><strong>db</strong>：公式の DB イメージの例が見つからない（図の赤い点線）。</li>
           </ul>
@@ -269,7 +269,7 @@
             <li><strong>プロセス分離</strong>：ホストの Windows カーネルを共有する。<code>--isolation=process</code></li>
             <li><strong>Hyper-V 分離</strong>：コンテナごとに軽量VM。<code>--isolation=hyperv</code></li>
           </ul>
-          <p>既定は、Windows Server ではプロセス分離、Windows 10 Pro / Enterprise では Hyper-V 分離です。Rozeさんの PC（Windows 11 Home）の既定は <code>hyperv</code> でした（2026/10/5 の実機確認）。</p>
+          <p>既定は、Windows Server ではプロセス分離、Windows 10 Pro / Enterprise では Hyper-V 分離です。筆者の PC（Windows 11 Home）の既定は <code>hyperv</code> でした（2026/10/5 の実機確認）。</p>
           <div class="note">
             <strong>DB コンテナは、図では「別の形で用意」</strong><br>
             Linux 版の db コンテナ（postgres ＋ 必須の環境変数）に当たる部分は、Windows コンテナでは、Lv1 の ①〜③ のように別の形で用意します。
@@ -445,7 +445,7 @@
             <strong>補足</strong><br>
             ・環境変数の名前（<code>POSTGRES_HOST</code> など）は、<strong>アプリ側の決め事</strong>の例です。実際のコードに合わせてください。<br>
             ・<code>depends_on</code> は起動順の指定です。DB の「準備完了」まで待つには、公式ガイドのように <code>healthcheck</code> と <code>condition: service_healthy</code> を使います。<br>
-            ・Rozeさんの PC は今 Windows コンテナのモードです（2026/10/5 の実機確認）。この Linux 版を試すには、<strong>Linux コンテナ（WSL 2）に切り替える</strong>必要があります。
+            ・Docker が Windows コンテナのモードになっている場合は、この Linux 版を試すために、<strong>Linux コンテナ（WSL 2）に切り替える</strong>必要があります。
           </div>
         </div>
 

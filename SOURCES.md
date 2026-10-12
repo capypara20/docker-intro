@@ -136,7 +136,7 @@
 
 出典（Windowsコンテナ）：https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/network-drivers-topologies
 
-- ※ Roze さんのPCは Windows コンテナ。Linux用のドライバー名とは別物
+- ※ Windows コンテナのドライバー名は、Linux 用のものとは別物
 - Windows のドライバー：**nat（既定）** / transparent / overlay / l2bridge / l2tunnel（Azure専用）
 - nat：内部Hyper-Vスイッチに接続。ホストからのポート転送に対応。開発者向け
 - transparent：外部Hyper-Vスイッチで物理ネットワークに直結

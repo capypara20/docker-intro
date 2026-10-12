@@ -135,7 +135,7 @@
         <li><strong>① VM</strong>：VM は「自分のカーネルを含む完全な OS」を動かします。その中に Linux を入れ、Docker Engine で Linux コンテナを動かす方法です。（VM ソフトの具体名は、一般的な話です）</li>
         <li><strong>② Docker Desktop</strong>：既定のバックエンドは <strong>WSL 2</strong>。コンテナは、WSL 2 の中の専用ディストリビューション（<code>docker-desktop</code>）で動きます。大きな組織では有償です。</li>
         <li><strong>③ WSL 2 ＋ Engine</strong>：Ubuntu などの WSL 2 ディストリビューションに、<strong>Docker Engine を直接</strong>入れます。Docker Desktop は不要。Docker Engine 自体のライセンスは変わっていません。</li>
-        <li><strong>④ Windows 上の Engine</strong>：<strong>Windows コンテナ</strong>を動かす方法。Windows Server では Moby・Mirantis・containerd。Windows 10/11 は、公式には「Pro / Enterprise ＋ Hyper-V」。Rozeさんの PC（Home）では動きましたが、公式の要件の外の可能性があります。</li>
+        <li><strong>④ Windows 上の Engine</strong>：<strong>Windows コンテナ</strong>を動かす方法。Windows Server では Moby・Mirantis・containerd。Windows 10/11 は、公式には「Pro / Enterprise ＋ Hyper-V」。筆者の PC（Home）では動きましたが、公式の要件の外の可能性があります。</li>
         <li><strong>⑤ WSL Containers</strong>：WSL に組み込まれた Linux コンテナ機能（<code>wslc.exe</code>）。<strong>Docker を別に入れなくてよい</strong>。2026/9/29 に一般提供（WSL 3.0.1）。Docker Compose は未対応と報じられています（公式ページでは未確認）。</li>
         <li>どれも「カーネルを借りて動く」点は同じ。違いは、<strong>誰がコンテナを作るか</strong>と、<strong>どのカーネルを使うか</strong>です。<span class="badge inf">公式の記述からの読み取り</span></li>
       </ol>
@@ -147,7 +147,7 @@
             <tr><th>① VM ＋ Linux</th><td>Linux</td><td>VM の仕組み（VirtualBox など）</td><td>ソフトによる</td><td><span class="badge unk">公式未確認</span> 具体的な VM ソフトの条件は、今回確認していません</td></tr>
             <tr><th>② Docker Desktop</th><td>Linux（基本）<br>Windows（Pro / Enterprise・all-users インストール）</td><td>WSL 2 または Hyper-V。Windows 11 は Enterprise / Pro / Education 23H2 以上</td><td>大きな組織は有償。250人未満かつ年商1,000万ドル未満、個人、教育、非商用 OSS は無料</td><td>Windows 11 Home は、要件のリストに載っていません</td></tr>
             <tr><th>③ WSL 2 ＋ Engine</th><td>Linux</td><td>WSL 2 と、Docker Engine のインストール</td><td>Docker Engine のライセンスは変更なし</td><td>Docker Desktop を入れるときは、WSL 内の Engine を先に消すよう案内されています</td></tr>
-            <tr><th>④ Windows 上の Engine</th><td>Windows</td><td>Windows Server、または Windows 10/11 の Pro / Enterprise ＋ Hyper-V</td><td>Moby（Docker CE）はオープンソース。Mirantis は別提供</td><td>Rozeさんの PC（Home）では実機で動作。公式の要件の外の可能性</td></tr>
+            <tr><th>④ Windows 上の Engine</th><td>Windows</td><td>Windows Server、または Windows 10/11 の Pro / Enterprise ＋ Hyper-V</td><td>Moby（Docker CE）はオープンソース。Mirantis は別提供</td><td>筆者の PC（Home）では実機で動作。公式の要件の外の可能性</td></tr>
             <tr><th>⑤ WSL Containers</th><td>Linux</td><td>WSL 2.9.3 以上（GA は 3.0.1）</td><td>WSL はオープンソース</td><td>Docker Compose は未対応と報じられている（二次情報）</td></tr>
           </tbody>
         </table>

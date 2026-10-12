@@ -138,7 +138,7 @@
       <p><small>※ ビルド番号が違うと起動がブロックされます（エラー例：<code>The operating system of the container does not match the operating system of the host</code>）。例外として Windows 11 ホストでは Windows Server 2022 のイメージを、24H2 以降は 2025 のイメージもプロセス分離で動かせます。</small></p>
 
       <div class="note">
-        <strong>Rozeさんの PC の実機確認（2026/10/5）</strong><br>
+        <strong>筆者の PC での実機確認（2026/10/5）</strong><br>
         Windows 11 Home でも Windows コンテナが動き、既定の分離は <code>hyperv</code>、<code>--isolation=process</code> でも動いた。プロセス分離では ping がホストの <code>Get-Process</code> に見え、Hyper-V分離では見えなかった。これは上の公式の説明と一致しています。
       </div>
 
@@ -155,10 +155,10 @@
 
   <section class="group" id="g-image">
     <h2>イメージ</h2>
-    <p class="lead">Rozeさんの Dockerfile からイメージができ、コンテナになるまでと、ビルドキャッシュの仕組み。</p>
+    <p class="lead">Dockerfile からイメージができ、コンテナになるまでと、ビルドキャッシュの仕組み。</p>
 <section class="scene" data-scene aria-labelledby="t-layers">
       <h3 id="t-layers">Dockerfile → イメージ → コンテナ（実例）</h3>
-      <p class="scene-sub">Rozeさんの <code>docker/dockerimage</code> ファイルを使っています。</p>
+      <p class="scene-sub">このリポジトリの <code>docker/dockerimage</code> ファイルを使っています。</p>
       <div class="stage">
         <div class="split">
           <div>
@@ -180,7 +180,7 @@
         </div>
       </div>
       <ol class="caption-list">
-        <li>まず <strong>Dockerfile</strong>（設計図）を書きます。これは Rozeさんの <code>dockerimage</code> ファイルの中身です。</li>
+        <li>まず <strong>Dockerfile</strong>（設計図）を書きます。これは <code>docker/dockerimage</code> ファイルの中身です。</li>
         <li><code>docker build</code>：<code>FROM</code> の行で、土台になるイメージの<strong>層（レイヤー）</strong>が積まれます。</li>
         <li><code>COPY</code> の行で、<code>hello.ps1</code> が入った層がその上に積まれます。<strong>レイヤー ＝ ファイルの追加・削除・変更の差分</strong>です。</li>
         <li><code>CMD</code> は「起動したら何を実行するか」の設定。これで<strong>イメージの完成</strong>です。完成したイメージは<strong>あとから変更できません</strong>（不変）。</li>

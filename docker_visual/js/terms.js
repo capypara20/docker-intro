@@ -479,7 +479,7 @@
     },
     winweb_img: {
       name: 'web イメージ（Windows）',
-      def: 'Windows 用のベースイメージ（例：Server Core）の上に、あなたのアプリを重ねて作る。Rozeさんの dockerimage と同じ形。',
+      def: 'Windows 用のベースイメージ（例：Server Core）の上に、あなたのアプリを重ねて作る。このリポジトリの docker/dockerimage と同じ形。',
       rel: [
         '← FROM mcr.microsoft.com/windows/servercore:ltsc2025 のように、ベースイメージを指定する',
         '✕ プロセス分離では、ホストの Windows とタグ（版）を合わせる必要がある。Hyper-V 分離なら不要',
@@ -544,7 +544,7 @@
       def: 'Windows コンテナを動かすエンジン。Windows Server では、Moby（Docker CE）・Mirantis Container Runtime・containerd が、公式に挙げられている。',
       rel: [
         '＝ Windows 10/11 では「Professional または Enterprise」と Hyper-V が必要と、公式に書かれている',
-        '？ Rozeさんの PC（Windows 11 Home）では動いた（実機の観察）。公式の要件の外の可能性がある',
+        '？ 筆者の PC（Windows 11 Home）では動いた（実機の観察）。公式の要件の外の可能性がある',
       ],
       src: [S.msSetup],
     },
