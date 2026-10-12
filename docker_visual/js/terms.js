@@ -34,6 +34,20 @@
     hubPg:     ['Docker Hub「postgres」（公式イメージ）', 'https://hub.docker.com/_/postgres'],
     msPersist: ['Microsoft Learn「Persistent storage in containers」', 'https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/persistent-storage'],
     msVer:     ['Microsoft Learn「Windows container version compatibility」', 'https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility'],
+    oci:          ['OCI「Overview」', 'https://opencontainers.org/about/overview/'],
+    containerd:   ['containerd', 'https://containerd.io/'],
+    podman:       ['Podman Docs', 'https://docs.podman.io/en/latest/'],
+    k8sRuntime:   ['Kubernetes Docs「Container Runtimes」', 'https://kubernetes.io/docs/setup/production-environment/container-runtimes/'],
+    wslAbout:     ['Microsoft Learn「What is Windows Subsystem for Linux」', 'https://learn.microsoft.com/en-us/windows/wsl/about'],
+    wslContainer: ['Microsoft Learn「WSL container」', 'https://learn.microsoft.com/en-us/windows/wsl/wsl-container'],
+    wslcArch:     ['Windows Command Line「WSLC Architecture deep dive」', 'https://devblogs.microsoft.com/commandline/wslc-architecture-deep-dive/'],
+    wslReleases:  ['GitHub「microsoft/WSL Releases」', 'https://github.com/microsoft/WSL/releases'],
+    desktopLicense: ['Docker Docs「Docker Desktop license」', 'https://docs.docker.com/subscription/desktop-license/'],
+    desktopWin:   ['Docker Docs「Install Docker Desktop on Windows」', 'https://docs.docker.com/desktop/setup/install/windows-install/'],
+    msSetup:      ['Microsoft Learn「Prepare Windows operating system containers」', 'https://learn.microsoft.com/en-us/virtualization/windowscontainers/quick-start/set-up-environment'],
+    psDiff:       ['Microsoft Learn「Differences between Windows PowerShell 5.1 and PowerShell 7.x」', 'https://learn.microsoft.com/en-us/powershell/scripting/whats-new/differences-from-windows-powershell'],
+    dotnet:       ['Microsoft Learn「Introduction to .NET」', 'https://learn.microsoft.com/en-us/dotnet/core/introduction'],
+    dotnetFw:     ['Microsoft Learn「Overview of .NET Framework」', 'https://learn.microsoft.com/en-us/dotnet/framework/get-started/overview'],
   };
 
   window.TERMS = {
@@ -65,8 +79,8 @@
     engine: {
       name: 'Docker Engine',
       def: 'アプリの構築とコンテナ化に使うオープンソースの技術。サーバー（dockerd）・API・CLI（docker）の3つでできた、クライアント・サーバー型のアプリ。',
-      rel: ['＝ docker（CLI）＋ Docker API ＋ dockerd'],
-      src: [S.engine],
+      rel: ['＝ docker（CLI）＋ Docker API ＋ dockerd', '＝ Kubernetes のコンテナランタイムの例として、公式に挙げられている（dockershim は 1.24 で削除）'],
+      src: [S.engine, S.k8sRuntime],
     },
     desktop: {
       name: 'Docker Desktop',
@@ -500,6 +514,249 @@
       ],
       src: [S.msPersist],
     },
+    /* ---------- 選び方・周辺技術：Windows PC で Docker を動かす構成 ---------- */
+    vm_linux: {
+      name: 'Linux の仮想マシン',
+      def: 'Linux をまるごと入れた仮想マシン（VM）。自分専用のカーネルを持つ。この中に Docker Engine を入れて、Linux コンテナを動かす。',
+      rel: ['＝ 公式：VM は「自分のカーネルを含む完全な OS」を動かす', '？ VirtualBox・VMware などの具体名は、一般的な話（今回の公式ページでは確認していない）'],
+      src: [S.msAbout],
+    },
+    desktop_win: {
+      name: 'Docker Desktop（Windows）',
+      def: 'Windows 用の Docker Desktop。バックエンドは WSL 2（既定）と Hyper-V。Linux コンテナが基本で、Windows コンテナは Pro / Enterprise のとき、all-users インストールで使える。',
+      rel: ['✕ 大きな組織での業務利用は有償（250人未満かつ年商1,000万ドル未満の小規模企業、個人、教育、非商用OSSは無料）', '＝ Docker Engine 自体のライセンスは、変更されていない'],
+      src: [S.desktopWin, S.desktopLicense],
+    },
+    desktop_distro: {
+      name: 'docker-desktop ディストリビューション',
+      def: 'Docker Desktop が WSL 2 の中で使う専用のディストリビューション。ほかのディストリビューションとは分離されている。',
+      rel: ['＝ ほかのディストリビューションとは、連携を有効にしたときだけやり取りする'],
+      src: [S.wsl],
+    },
+    ubuntu_distro: {
+      name: 'Linux ディストリビューション（Ubuntu など）',
+      def: 'WSL 2 の中で動く Linux。この中に Docker Engine を直接入れて、Linux コンテナを動かすこともできる。',
+      rel: ['✕ Docker Desktop を入れる前に、WSL 内の Docker Engine / CLI は消すよう案内されている'],
+      src: [S.wsl, S.wslAbout],
+    },
+    win_engine: {
+      name: 'Docker Engine（Windows 上）',
+      def: 'Windows コンテナを動かすエンジン。Windows Server では、Moby（Docker CE）・Mirantis Container Runtime・containerd が、公式に挙げられている。',
+      rel: [
+        '＝ Windows 10/11 では「Professional または Enterprise」と Hyper-V が必要と、公式に書かれている',
+        '？ Rozeさんの PC（Windows 11 Home）では動いた（実機の観察）。公式の要件の外の可能性がある',
+      ],
+      src: [S.msSetup],
+    },
+    wslc: {
+      name: 'WSL Containers（wslc）',
+      def: 'WSL に組み込まれた、Linux コンテナの機能。CLI の wslc.exe と、Windows アプリ向けの API からなる。Docker を別に入れなくてよい。',
+      rel: [
+        '＝ WSL 2.9.3 以上が必要。一般提供（GA）は WSL 3.0.1（2026/9/29）',
+        '＝ 動かすのは Linux コンテナ',
+        '？ Docker Compose は未対応と報じられている（Microsoft の公式ページでは確認できていない）',
+      ],
+      src: [S.wslContainer, S.wslReleases, S.wslcArch],
+    },
+    wslc_cli: {
+      name: 'wslc.exe',
+      def: 'WSL に組み込まれた CLI。Linux コンテナを作る・動かす・操作する。docker に似たコマンド（run、image ls、container ps など）で使う。',
+      rel: ['⇢ 内部では、wslservice.exe を呼び出す'],
+      src: [S.wslContainer, S.wslcArch],
+    },
+    wslc_service: {
+      name: 'WSL（wslservice.exe）',
+      def: '特権を持つ Windows サービス。HCS で仮想マシンを作るが、VM の持ち主にはならず、セッション用の子プロセス wslcsession.exe を作る。',
+      rel: ['→ セッションごとに、別のプロセスで動かす（セッション間の分離を強くするため）'],
+      src: [S.wslcArch],
+    },
+    wslc_session: {
+      name: 'wslcsession.exe（セッション）',
+      def: '呼び出したユーザーの代わりに動くプロセス。コンテナの作成、ディレクトリのマウント、ポートのバインドなどを行う。セッションごとに専用の VHD を持つ。',
+      rel: ['＝ Windows のパスは、virtiofs の共有としてマウントされる（Plan9 の約2倍速と説明）', '＝ ネットワークは、新しいモデル「Consommé」（VPN・ファイアウォールとの互換性が高いと説明）'],
+      src: [S.wslcArch],
+    },
+
+    /* ---------- 選び方・周辺技術：コンテナ技術の全体地図 ---------- */
+    l_orch: {
+      name: '層：クラスタの管理',
+      def: '多数のコンテナを、複数のマシンにまたがって管理する層。（この層分けは、筆者の整理です。公式の分類ではありません）',
+      rel: [],
+      src: [],
+    },
+    l_tools: {
+      name: '層：利用者が使うエンジン・ツール',
+      def: 'あなたが docker や podman などのコマンドで触る層。（この層分けは、筆者の整理です。公式の分類ではありません）',
+      rel: [],
+      src: [],
+    },
+    l_runtime: {
+      name: '層：コンテナランタイム',
+      def: 'コンテナのライフサイクルを管理する層。（この層分けは、筆者の整理です。公式の分類ではありません）',
+      rel: [],
+      src: [],
+    },
+    l_low: {
+      name: '層：低レベルランタイム',
+      def: '実際にコンテナのプロセスを作って動かす層。（この層分けは、筆者の整理です。公式の分類ではありません）',
+      rel: [],
+      src: [],
+    },
+    l_spec: {
+      name: '層：規格（OCI）',
+      def: 'コンテナの形式やランタイムの「決まりごと」。どのツールも、これに沿って作られる。',
+      rel: [],
+      src: [S.oci],
+    },
+    oci: {
+      name: 'OCI（Open Container Initiative）',
+      def: 'コンテナの形式とランタイムの業界標準を作るためのプロジェクト。Linux Foundation の下で、2015年6月22日に Docker、CoreOS などが発足させた。',
+      rel: ['＝ 3つの仕様：Runtime / Image / Distribution'],
+      src: [S.oci],
+    },
+    oci_runtime: {
+      name: 'Runtime Specification',
+      def: 'ディスク上に展開された「filesystem bundle」を、どう実行するかを定める仕様。',
+      rel: ['⇢ runc が、これに沿ったランタイム'],
+      src: [S.oci],
+    },
+    oci_image: {
+      name: 'Image Specification',
+      def: 'OCI イメージの作り方を定める仕様。イメージは、マニフェスト・ファイルシステムのレイヤー・イメージ設定でできている。',
+      rel: [],
+      src: [S.oci],
+    },
+    oci_dist: {
+      name: 'Distribution Specification',
+      def: 'コンテナイメージを配布するための API を標準化する仕様。2020年5月に v1.0。コンテナ以外のコンテンツの配布にも使えるよう、汎用に作られている。',
+      rel: ['⇄ レジストリが、これに沿ってイメージを配る（読み取り）'],
+      src: [S.oci],
+    },
+    runc: {
+      name: 'runc（runC）',
+      def: 'Docker が OCI に寄贈した、コンテナの形式とランタイム。OCI の取り組みの「cornerstone（礎）」と位置づけられている。',
+      rel: [
+        '⇢ containerd は「OCI Runtime Spec support (aka runC)」を機能として挙げている',
+        '⇢ Podman は、runc や crun などの OCI 準拠のランタイムを使う',
+      ],
+      src: [S.oci, S.containerd, S.podman],
+    },
+    crun: {
+      name: 'crun',
+      def: 'Podman のページで、runc と並べて挙げられている、OCI 準拠のランタイム。',
+      rel: [],
+      src: [S.podman],
+    },
+    containerd: {
+      name: 'containerd',
+      def: 'ホスト上のコンテナのライフサイクル全体（イメージの転送と保存、コンテナの実行と監視、低レベルのストレージとネットワーク）を管理する、業界標準のコンテナランタイム。Linux と Windows の両方に、デーモンがある。',
+      rel: [
+        '＝ 2019年2月28日に CNCF の「卒業」プロジェクトになった',
+        '⇢ Kubernetes のコンテナランタイムの例として、公式に挙げられている',
+        '⇄ nerdctl という、Docker 互換の CLI がある',
+        '＝ Windows Server で使えるランタイムとして、Microsoft も挙げている',
+      ],
+      src: [S.containerd, S.k8sRuntime, S.msSetup],
+    },
+    crio: {
+      name: 'CRI-O',
+      def: 'Kubernetes のコンテナランタイムの例として、公式に挙げられているもの。',
+      rel: [],
+      src: [S.k8sRuntime],
+    },
+    podman: {
+      name: 'Podman',
+      def: 'コンテナやイメージを、見つけ・実行し・ビルドし・共有し・デプロイするためのツール。「daemonless（デーモンを持たない）」。Docker に慣れた人が使える CLI を持ち、root でも一般ユーザーでも実行できる。',
+      rel: [
+        '⇢ コンテナの作成は、OCI 準拠のランタイム（runc、crun など）に頼る',
+        '＝ 作ったコンテナは、他の一般的なコンテナエンジンのものと、ほぼ区別がつかない',
+      ],
+      src: [S.podman],
+    },
+    nerdctl: {
+      name: 'nerdctl',
+      def: 'containerd 用の、Docker 互換のコマンドラインツール。',
+      rel: ['⇢ containerd を、docker のようなコマンドで操作できる'],
+      src: [S.msSetup],
+    },
+    k8s: {
+      name: 'Kubernetes',
+      def: 'クラスタの各ノードに、Pod を動かすためのコンテナランタイムを入れて使う。ランタイムは、CRI（Container Runtime Interface）に準拠している必要がある。',
+      rel: [
+        '＝ ランタイムの例：containerd、CRI-O、Docker Engine、Mirantis Container Runtime',
+        '✕ Docker Engine との直接の統合（dockershim）は、1.24 で削除された',
+      ],
+      src: [S.k8sRuntime],
+    },
+    cri: {
+      name: 'CRI（Container Runtime Interface）',
+      def: 'kubelet と、ローカルのコンテナランタイムの間の通信の取り決め。Kubernetes 1.26 以降は、CRI API の v1 にだけ対応する。',
+      rel: [],
+      src: [S.k8sRuntime],
+    },
+
+    /* ---------- 選び方・周辺技術：アプリ別の選び方 ---------- */
+    q_linux: {
+      name: '判断のポイント：Linux でも動く？',
+      def: 'コンテナはホストのカーネルを借りて動くので、アプリが Linux でも動くかどうかが、最初の分かれ目になる。（判断の流れは、筆者の整理です）',
+      rel: ['＝ Linux でも動く → Linux コンテナ。Windows 専用 → Windows コンテナ'],
+      src: [S.msAbout],
+    },
+    ps7: {
+      name: 'PowerShell 7',
+      def: '.NET Core の上に作られた PowerShell。Windows・macOS・Linux で動く（クロスプラットフォーム）。',
+      rel: [],
+      src: [S.psDiff],
+    },
+    ps51: {
+      name: 'Windows PowerShell 5.1',
+      def: '.NET Framework 4.5 の上に作られている。クロスプラットフォームになったのは、PowerShell 6.0 以降。',
+      rel: [],
+      src: [S.psDiff],
+    },
+    dotnet: {
+      name: '.NET（旧 .NET Core）',
+      def: '無料・クロスプラットフォーム・オープンソースの開発プラットフォーム。',
+      rel: [],
+      src: [S.dotnet],
+    },
+    dotnet_fw: {
+      name: '.NET Framework',
+      def: '元祖の .NET。「Windows アプリと Web サービスを作って動かす」ための技術で、Windows と Windows Server の幅広い機能を使える。新規開発では .NET を使うよう案内されている。',
+      rel: ['＝ IIS（Internet Information Services）が、そのランタイムをホストできる'],
+      src: [S.dotnetFw, S.dotnet],
+    },
+    db_linux: {
+      name: 'DB（PostgreSQL など）',
+      def: 'PostgreSQL の公式イメージは、Docker Hub に Windows の記載がない。DB は、Linux コンテナで動かすのが基本になる。（SQL Server の公式コンテナイメージが Linux 向けという点は、公式ページでの確認が未了）',
+      rel: [],
+      src: [S.hubPg],
+    },
+    gui_excel: {
+      name: 'GUI・Excel 操作のアプリ',
+      def: 'コンテナには向かないと、筆者は整理している。そのままの PC、または VM で動かす想定。',
+      rel: ['？ 公式ページでは確認できていない（筆者の整理）'],
+      src: [],
+    },
+    pattern_a: {
+      name: 'パターン A：Windows コンテナ',
+      def: 'Windows 専用のアプリ向け。開発は Windows 11 Pro / Enterprise ＋ Docker Desktop（Windows コンテナ）、本番は Windows Server ＋ Docker Engine。',
+      rel: [
+        '＝ 公式：Windows 10/11 は Pro / Enterprise ＋ Hyper-V。Windows Server は Moby・Mirantis・containerd',
+        '✕ イメージのタグ（ltsc2022 など）は、本番の Windows の版に合わせる',
+      ],
+      src: [S.msSetup, S.msVer],
+    },
+    pattern_b: {
+      name: 'パターン B：Linux コンテナ',
+      def: 'Linux でも動くアプリ向け。開発は WSL 2 ＋ Docker Engine（または Docker Desktop）、本番は Linux サーバーやクラウド。',
+      rel: [
+        '＝ 公式：Azure の VM は、Linux アプリには Ubuntu のイメージを使う',
+        '？ 「Windows Server の Hyper-V 上に Linux VM」「Windows Server に直接 Linux コンテナは載せない」は、筆者の整理（公式ページでの確認はできていない）',
+      ],
+      src: [S.wsl, S.msAbout],
+    },
+
     dbms: {
       name: 'PostgreSQL',
       def: 'データベースのソフトウェア。db コンテナの中で動いて、データを保存する。',

@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>選び方と周辺技術：どの構成を使う？</title>
+  <meta name="description" content="Windows PC で Docker を動かす構成の比較、コンテナ技術の全体地図（OCI・containerd・runc・Podman・Kubernetes）、アプリ別の選び方を、公式ドキュメントの出典つきで解説">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/scenes.css">
+  <link rel="stylesheet" href="css/termmap.css">
+  <link rel="stylesheet" href="css/details.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="details-head">
+    <h1>選び方と周辺技術：どの構成を使う？</h1>
+    <p>全体像（<a href="index.html">index.html</a>）の「次の疑問」にあたるページです。①どの構成で動かすか ②周辺の技術（OCI・containerd・Podman など）の関係 ③アプリごとの選び方、を見ます。各図の「▶ 再生」か「次へ」で動き、箱をクリックすると意味と出典が出ます。</p>
+    <ul class="jump" aria-label="ページ内の移動">
+      <li><a href="#t-config">Windows PC での5つの構成</a></li>
+      <li><a href="#t-landscape">コンテナ技術の全体地図</a></li>
+      <li><a href="#t-choose">アプリ別の選び方</a></li>
+      <li><a href="#sources">出典・未確認の点</a></li>
+    </ul>
+  </header>
+
+  <main>
+
+  <!-- ======================= A. 構成の比較 ======================= -->
+  <section class="group" id="g-config">
+    <h2>① Windows PC で Docker を動かす構成</h2>
+    <p class="lead">どれも「Windows PC の上」です。何が土台で、何がコンテナを作るのかを、入れ子で比べます。</p>
+
+    <section class="scene" data-scene aria-labelledby="t-config">
+      <h3 id="t-config">Windows PC で Docker を動かす 5 つの構成</h3>
+      <p class="scene-sub">箱の中の箱 ＝「〜の上で動く・〜の中にある」。箱をクリックすると、意味・関係・出典が出ます。</p>
+      <div class="stage">
+        <div class="termmap">
+
+          <div class="cfg" data-show="1" data-hl="1">
+            <div class="cfg-title">① 仮想マシン（VM）に Linux を入れて、その中で Docker</div>
+            <div class="tm win" data-term="hostos">
+              <button class="tm-label" type="button"><span class="tm-name">Windows</span></button>
+              <div class="tm-body">
+                <div class="tm lin" data-term="vm_linux">
+                  <button class="tm-label" type="button"><span class="tm-name">Linux の仮想マシン</span><span class="tm-note">自分専用のカーネル</span></button>
+                  <div class="tm-body">
+                    <div class="tm ctr" data-term="engine"><button class="tm-label" type="button"><span class="tm-name">Docker Engine</span></button></div>
+                    <div class="tm ctr" data-term="ctr_linux"><button class="tm-label" type="button"><span class="tm-name">Linux コンテナ</span></button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cfg" data-show="2" data-hl="2">
+            <div class="cfg-title">② Docker Desktop（WSL 2 バックエンド）</div>
+            <div class="tm win" data-term="hostos">
+              <button class="tm-label" type="button"><span class="tm-name">Windows</span></button>
+              <div class="tm-body">
+                <div class="tm ctr" data-term="desktop_win"><button class="tm-label" type="button"><span class="tm-name">Docker Desktop</span><span class="tm-note">GUI・docker コマンド</span></button></div>
+                <div class="tm lin" data-term="wsl2">
+                  <button class="tm-label" type="button"><span class="tm-name">WSL 2</span><span class="tm-note">Linux カーネル</span></button>
+                  <div class="tm-body">
+                    <div class="tm host" data-term="desktop_distro">
+                      <button class="tm-label" type="button"><span class="tm-name">docker-desktop ディストリビューション</span></button>
+                      <div class="tm-body">
+                        <div class="tm ctr" data-term="engine"><button class="tm-label" type="button"><span class="tm-name">Docker Engine</span></button></div>
+                        <div class="tm ctr" data-term="ctr_linux"><button class="tm-label" type="button"><span class="tm-name">Linux コンテナ</span></button></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cfg" data-show="3" data-hl="3">
+            <div class="cfg-title">③ WSL 2 の Ubuntu などに、Docker Engine を直接入れる</div>
+            <div class="tm win" data-term="hostos">
+              <button class="tm-label" type="button"><span class="tm-name">Windows</span></button>
+              <div class="tm-body">
+                <div class="tm lin" data-term="wsl2">
+                  <button class="tm-label" type="button"><span class="tm-name">WSL 2</span><span class="tm-note">Linux カーネル</span></button>
+                  <div class="tm-body">
+                    <div class="tm host" data-term="ubuntu_distro">
+                      <button class="tm-label" type="button"><span class="tm-name">Ubuntu など</span></button>
+                      <div class="tm-body">
+                        <div class="tm ctr" data-term="engine"><button class="tm-label" type="button"><span class="tm-name">Docker Engine</span><span class="tm-note">直接入れる</span></button></div>
+                        <div class="tm ctr" data-term="ctr_linux"><button class="tm-label" type="button"><span class="tm-name">Linux コンテナ</span></button></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cfg" data-show="4" data-hl="4">
+            <div class="cfg-title">④ Windows 上に Docker Engine（Windows コンテナ）</div>
+            <div class="tm win" data-term="hostos">
+              <button class="tm-label" type="button"><span class="tm-name">Windows</span><span class="tm-note">カーネルを貸す</span></button>
+              <div class="tm-body">
+                <div class="tm ctr" data-term="win_engine"><button class="tm-label" type="button"><span class="tm-name">Docker Engine</span><span class="tm-note">Windows 上</span></button></div>
+                <div class="tm ctr" data-term="ctr_win"><button class="tm-label" type="button"><span class="tm-name">Windows コンテナ</span><span class="tm-note">プロセス分離 / Hyper-V 分離</span></button></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cfg" data-show="5" data-hl="5">
+            <div class="cfg-title">⑤ WSL Containers（wslc）：Docker を入れずに Linux コンテナ</div>
+            <div class="tm win" data-term="hostos">
+              <button class="tm-label" type="button"><span class="tm-name">Windows</span></button>
+              <div class="tm-body">
+                <div class="tm ctr" data-term="wslc_cli"><button class="tm-label" type="button"><span class="tm-name">wslc.exe</span><span class="tm-note">CLI（docker に似たコマンド）</span></button></div>
+                <div class="tm lin" data-term="wslc_service">
+                  <button class="tm-label" type="button"><span class="tm-name">WSL（wslservice.exe）</span><span class="tm-note">VM を作る</span></button>
+                  <div class="tm-body">
+                    <div class="tm host" data-term="wslc_session">
+                      <button class="tm-label" type="button"><span class="tm-name">セッション（wslcsession.exe）</span></button>
+                      <div class="tm-body">
+                        <div class="tm ctr" data-term="ctr_linux"><button class="tm-label" type="button"><span class="tm-name">Linux コンテナ</span></button></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tm-panel" aria-live="polite"></div>
+        </div>
+      </div>
+      <ol class="caption-list">
+        <li><strong>① VM</strong>：VM は「自分のカーネルを含む完全な OS」を動かします。その中に Linux を入れ、Docker Engine で Linux コンテナを動かす方法です。（VM ソフトの具体名は、一般的な話です）</li>
+        <li><strong>② Docker Desktop</strong>：既定のバックエンドは <strong>WSL 2</strong>。コンテナは、WSL 2 の中の専用ディストリビューション（<code>docker-desktop</code>）で動きます。大きな組織では有償です。</li>
+        <li><strong>③ WSL 2 ＋ Engine</strong>：Ubuntu などの WSL 2 ディストリビューションに、<strong>Docker Engine を直接</strong>入れます。Docker Desktop は不要。Docker Engine 自体のライセンスは変わっていません。</li>
+        <li><strong>④ Windows 上の Engine</strong>：<strong>Windows コンテナ</strong>を動かす方法。Windows Server では Moby・Mirantis・containerd。Windows 10/11 は、公式には「Pro / Enterprise ＋ Hyper-V」。Rozeさんの PC（Home）では動きましたが、公式の要件の外の可能性があります。</li>
+        <li><strong>⑤ WSL Containers</strong>：WSL に組み込まれた Linux コンテナ機能（<code>wslc.exe</code>）。<strong>Docker を別に入れなくてよい</strong>。2026/9/29 に一般提供（WSL 3.0.1）。Docker Compose は未対応と報じられています（公式ページでは未確認）。</li>
+        <li>どれも「カーネルを借りて動く」点は同じ。違いは、<strong>誰がコンテナを作るか</strong>と、<strong>どのカーネルを使うか</strong>です。<span class="badge inf">公式の記述からの読み取り</span></li>
+      </ol>
+
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>構成</th><th>動かせるコンテナ</th><th>必要なもの（公式の記載）</th><th>ライセンス</th><th>メモ</th></tr></thead>
+          <tbody>
+            <tr><th>① VM ＋ Linux</th><td>Linux</td><td>VM の仕組み（VirtualBox など）</td><td>ソフトによる</td><td><span class="badge unk">公式未確認</span> 具体的な VM ソフトの条件は、今回確認していません</td></tr>
+            <tr><th>② Docker Desktop</th><td>Linux（基本）<br>Windows（Pro / Enterprise・all-users インストール）</td><td>WSL 2 または Hyper-V。Windows 11 は Enterprise / Pro / Education 23H2 以上</td><td>大きな組織は有償。250人未満かつ年商1,000万ドル未満、個人、教育、非商用 OSS は無料</td><td>Windows 11 Home は、要件のリストに載っていません</td></tr>
+            <tr><th>③ WSL 2 ＋ Engine</th><td>Linux</td><td>WSL 2 と、Docker Engine のインストール</td><td>Docker Engine のライセンスは変更なし</td><td>Docker Desktop を入れるときは、WSL 内の Engine を先に消すよう案内されています</td></tr>
+            <tr><th>④ Windows 上の Engine</th><td>Windows</td><td>Windows Server、または Windows 10/11 の Pro / Enterprise ＋ Hyper-V</td><td>Moby（Docker CE）はオープンソース。Mirantis は別提供</td><td>Rozeさんの PC（Home）では実機で動作。公式の要件の外の可能性</td></tr>
+            <tr><th>⑤ WSL Containers</th><td>Linux</td><td>WSL 2.9.3 以上（GA は 3.0.1）</td><td>WSL はオープンソース</td><td>Docker Compose は未対応と報じられている（二次情報）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <strong>注意点</strong><br>
+        ・「WSL 3」という製品名は、GitHub のリリースノートには出てきません。確認できるのは、バージョン番号が 3.0.x 系になったことだけです（3.0.1 で WSLc が一般提供）。<br>
+        ・WSLC の内部（VM が専用かどうか、使うカーネル）は、Microsoft のアーキテクチャ解説では「記載なし」でした。<span class="badge unk">公式未確認</span>
+      </div>
+
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://docs.docker.com/desktop/setup/install/windows-install/" target="_blank" rel="noopener">Docker Docs「Install Docker Desktop on Windows」</a> … バックエンド（WSL 2 / Hyper-V）、エディション、Windows コンテナの条件</li>
+          <li><a href="https://docs.docker.com/subscription/desktop-license/" target="_blank" rel="noopener">Docker Docs「Docker Desktop license」</a> … 有償になる条件、Engine のライセンスは変更なし</li>
+          <li><a href="https://docs.docker.com/desktop/features/wsl/" target="_blank" rel="noopener">Docker Docs「WSL 2 backend」</a> … docker-desktop ディストリビューション、WSL 内の Engine</li>
+          <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/quick-start/set-up-environment" target="_blank" rel="noopener">Microsoft Learn「Prepare Windows operating system containers」</a> … Windows 10/11 の条件、Windows Server のランタイム</li>
+          <li><a href="https://learn.microsoft.com/en-us/windows/wsl/wsl-container" target="_blank" rel="noopener">Microsoft Learn「WSL container」</a> … wslc.exe、WSL 2.9.3 以上</li>
+          <li><a href="https://devblogs.microsoft.com/commandline/wslc-architecture-deep-dive/" target="_blank" rel="noopener">Windows Command Line「WSLC Architecture deep dive」</a> … wslservice.exe / wslcsession.exe、VHD、virtiofs、ネットワーク</li>
+          <li><a href="https://github.com/microsoft/WSL/releases" target="_blank" rel="noopener">GitHub「microsoft/WSL Releases」</a> … 3.0.1 で「WSLc is generally available」</li>
+        </ul>
+      </div>
+    </section>
+  </section>
+
+  <!-- ======================= B. 技術の全体地図 ======================= -->
+  <section class="group" id="g-landscape">
+    <h2>② コンテナ技術の全体地図</h2>
+    <p class="lead">OCI・runc・containerd・Docker Engine・Podman・Kubernetes は、どういう関係？ 下の「規格」から、上の「クラスタ管理」へ積み上げます。</p>
+
+    <section class="scene" data-scene aria-labelledby="t-landscape">
+      <h3 id="t-landscape">コンテナ技術の全体地図（下から積み上げる）</h3>
+      <p class="scene-sub">上ほど「利用者に近い」並びです。層の分け方は筆者の整理（公式の分類ではありません）。箱をクリックすると、公式の説明と出典が出ます。</p>
+      <div class="stage">
+        <div class="termmap">
+
+          <div class="tm net" data-term="l_orch" data-show="5" data-hl="5">
+            <button class="tm-label" type="button"><span class="tm-name">クラスタの管理</span><span class="tm-note">多数のコンテナを、複数のマシンで</span></button>
+            <div class="tm-body">
+              <div class="tm net" data-term="k8s"><button class="tm-label" type="button"><span class="tm-name">Kubernetes</span><span class="tm-note">CRI に準拠したランタイムが必要</span></button></div>
+              <div class="tm host" data-term="cri"><button class="tm-label" type="button"><span class="tm-name">CRI</span><span class="tm-note">kubelet とランタイムの取り決め</span></button></div>
+            </div>
+          </div>
+
+          <div class="tm ctr" data-term="l_tools" data-show="4" data-hl="4">
+            <button class="tm-label" type="button"><span class="tm-name">利用者が使うエンジン・ツール</span><span class="tm-note">docker / podman / nerdctl</span></button>
+            <div class="tm-body">
+              <div class="tm ctr" data-term="engine"><button class="tm-label" type="button"><span class="tm-name">Docker Engine</span><span class="tm-note">docker ＋ API ＋ dockerd</span></button></div>
+              <div class="tm ctr" data-term="podman"><button class="tm-label" type="button"><span class="tm-name">Podman</span><span class="tm-note">デーモンを持たない</span></button></div>
+              <div class="tm ctr" data-term="nerdctl"><button class="tm-label" type="button"><span class="tm-name">nerdctl</span><span class="tm-note">containerd 用の Docker 互換 CLI</span></button></div>
+            </div>
+          </div>
+
+          <div class="tm win" data-term="l_runtime" data-show="3" data-hl="3">
+            <button class="tm-label" type="button"><span class="tm-name">コンテナランタイム</span><span class="tm-note">ライフサイクルを管理する</span></button>
+            <div class="tm-body">
+              <div class="tm win" data-term="containerd"><button class="tm-label" type="button"><span class="tm-name">containerd</span><span class="tm-note">Linux にも Windows にもある</span></button></div>
+              <div class="tm win" data-term="crio"><button class="tm-label" type="button"><span class="tm-name">CRI-O</span></button></div>
+            </div>
+          </div>
+
+          <div class="tm lin" data-term="l_low" data-show="2" data-hl="2">
+            <button class="tm-label" type="button"><span class="tm-name">低レベルランタイム</span><span class="tm-note">コンテナのプロセスを実際に作る</span></button>
+            <div class="tm-body">
+              <div class="tm lin" data-term="runc"><button class="tm-label" type="button"><span class="tm-name">runc</span><span class="tm-note">Docker が OCI に寄贈</span></button></div>
+              <div class="tm lin" data-term="crun"><button class="tm-label" type="button"><span class="tm-name">crun</span></button></div>
+            </div>
+          </div>
+
+          <div class="tm img" data-term="l_spec" data-hl="1">
+            <button class="tm-label" type="button"><span class="tm-name">規格：OCI（Open Container Initiative）</span><span class="tm-note">3つの仕様</span></button>
+            <div class="tm-body">
+              <div class="tm img" data-term="oci_image"><button class="tm-label" type="button"><span class="tm-name">Image Spec</span><span class="tm-note">イメージの形</span></button></div>
+              <div class="tm img" data-term="oci_runtime"><button class="tm-label" type="button"><span class="tm-name">Runtime Spec</span><span class="tm-note">実行のしかた</span></button></div>
+              <div class="tm img" data-term="oci_dist"><button class="tm-label" type="button"><span class="tm-name">Distribution Spec</span><span class="tm-note">配布の API</span></button></div>
+            </div>
+          </div>
+
+          <div class="tm-panel" aria-live="polite"></div>
+        </div>
+      </div>
+      <ol class="caption-list">
+        <li><strong>規格（OCI）</strong>：コンテナの形式とランタイムの業界標準。3つの仕様（Image / Runtime / Distribution）があります。2015年6月に Docker、CoreOS などが発足させました。</li>
+        <li><strong>低レベルランタイム</strong>：コンテナのプロセスを実際に作る部分。<strong>runc</strong> は、Docker が OCI に寄贈したものです。Podman のページには、runc と並んで <strong>crun</strong> が挙がっています。</li>
+        <li><strong>コンテナランタイム</strong>：<strong>containerd</strong> は、コンテナのライフサイクル全体（イメージの転送と保存、コンテナの実行と監視など）を管理します。Linux と Windows の両方にあります。<strong>CRI-O</strong> も、Kubernetes のランタイムの例です。</li>
+        <li><strong>エンジン・ツール</strong>：<strong>Docker Engine</strong>、デーモンを持たない <strong>Podman</strong>、containerd 用の Docker 互換 CLI <strong>nerdctl</strong>。Podman は、OCI 準拠のランタイム（runc、crun など）に頼ってコンテナを作ります。</li>
+        <li><strong>Kubernetes</strong>：各ノードに、CRI に準拠したコンテナランタイムを入れて使います。例は containerd・CRI-O・Docker Engine・Mirantis Container Runtime。Docker Engine との直接統合（dockershim）は 1.24 で削除されました。</li>
+      </ol>
+
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>名前</th><th>何をするもの（公式の説明）</th><th>ひとこと</th></tr></thead>
+          <tbody>
+            <tr><th>OCI</th><td>コンテナの形式とランタイムの業界標準を作るプロジェクト。Runtime / Image / Distribution の3仕様</td><td>みんなが守る「決まりごと」</td></tr>
+            <tr><th>runc</th><td>Docker が OCI に寄贈した、コンテナの形式とランタイム（「cornerstone」）</td><td>コンテナを実際に起動する部品</td></tr>
+            <tr><th>containerd</th><td>ホスト上のコンテナのライフサイクル全体を管理する、業界標準のコンテナランタイム。CNCF の卒業プロジェクト</td><td>Kubernetes でも、Windows Server でも使える</td></tr>
+            <tr><th>Docker Engine</th><td>サーバー（dockerd）・API・CLI（docker）の3つでできた、クライアント・サーバー型のアプリ</td><td>いつもの docker コマンド</td></tr>
+            <tr><th>Podman</th><td>コンテナやイメージを扱うツール。デーモンを持たず、Docker に似た CLI を持つ。root でも一般ユーザーでも実行できる</td><td>docker の代わりに使える</td></tr>
+            <tr><th>Kubernetes</th><td>各ノードに CRI 準拠のコンテナランタイムを入れて、Pod を動かす</td><td>大規模に管理する仕組み</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <strong>注意点</strong><br>
+        ・「dockerd が containerd を呼び、containerd が runc を呼ぶ」という呼び出しの順は、今回取得した公式ページには明記がありませんでした（containerd のページに、採用事例として Docker が挙がっているだけです）。図では、この呼び出しの順を描いていません。<span class="badge unk">公式未確認</span>
+      </div>
+
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://opencontainers.org/about/overview/" target="_blank" rel="noopener">OCI「Overview」</a> … 3つの仕様、runC の寄贈</li>
+          <li><a href="https://containerd.io/" target="_blank" rel="noopener">containerd</a> … ライフサイクル管理、OCI Runtime Spec support (aka runC)、CNCF 卒業</li>
+          <li><a href="https://docs.podman.io/en/latest/" target="_blank" rel="noopener">Podman Docs</a> … daemonless、Docker 互換の CLI、OCI 準拠のランタイム（runc、crun）</li>
+          <li><a href="https://kubernetes.io/docs/setup/production-environment/container-runtimes/" target="_blank" rel="noopener">Kubernetes Docs「Container Runtimes」</a> … CRI、対応ランタイム、dockershim の削除</li>
+          <li><a href="https://docs.docker.com/engine/" target="_blank" rel="noopener">Docker Docs「Docker Engine」</a> … Engine の構成</li>
+          <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/quick-start/set-up-environment" target="_blank" rel="noopener">Microsoft Learn「Prepare Windows operating system containers」</a> … nerdctl、Windows の containerd</li>
+        </ul>
+      </div>
+    </section>
+  </section>
+
+  <!-- ======================= C. アプリ別の選び方 ======================= -->
+  <section class="group" id="g-choose">
+    <h2>③ アプリ別：どれを使う？</h2>
+    <p class="lead">決め手は「そのアプリは、Linux でも動くか」。コンテナはホストのカーネルを借りて動くので、ここが最初の分かれ目です。</p>
+
+    <section class="scene" data-scene aria-labelledby="t-choose">
+      <h3 id="t-choose">アプリ別の選び方（判断の流れ）</h3>
+      <p class="scene-sub">判断の流れは筆者の整理です。各アプリの対応 OS は、Microsoft の公式ページで確認した範囲を示します。</p>
+      <div class="stage">
+        <div class="termmap">
+
+          <div class="tm host" data-term="q_linux" data-hl="1">
+            <button class="tm-label" type="button"><span class="tm-name">そのアプリは、Linux でも動く？</span><span class="tm-note">最初の分かれ目</span></button>
+          </div>
+
+          <div class="grid2 choose-grid">
+            <div class="tm-col">
+              <div class="tm lin" data-term="pattern_b" data-show="2" data-hl="2">
+                <button class="tm-label" type="button"><span class="tm-name">動く → パターン B：Linux コンテナ</span></button>
+                <div class="tm-body col">
+                  <div class="tm-body">
+                    <div class="tm host" data-term="ps7"><button class="tm-label" type="button"><span class="tm-name">PowerShell 7</span></button></div>
+                    <div class="tm host" data-term="dotnet"><button class="tm-label" type="button"><span class="tm-name">.NET（旧 .NET Core）</span></button></div>
+                    <div class="tm host" data-term="db_linux"><button class="tm-label" type="button"><span class="tm-name">DB（PostgreSQL など）</span></button></div>
+                  </div>
+                  <div class="tm img" data-show="3" data-hl="3"><div class="tm-note">開発：WSL 2 ＋ Docker Engine（または Docker Desktop）</div></div>
+                  <div class="tm img" data-show="3" data-hl="3"><div class="tm-note">本番：Linux サーバー・クラウド</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="tm-col">
+              <div class="tm win" data-term="pattern_a" data-show="4" data-hl="4">
+                <button class="tm-label" type="button"><span class="tm-name">Windows 専用 → パターン A：Windows コンテナ</span></button>
+                <div class="tm-body col">
+                  <div class="tm-body">
+                    <div class="tm host" data-term="dotnet_fw"><button class="tm-label" type="button"><span class="tm-name">.NET Framework（IIS 上の ASP.NET など）</span></button></div>
+                    <div class="tm host" data-term="ps51"><button class="tm-label" type="button"><span class="tm-name">Windows PowerShell 5.1</span></button></div>
+                  </div>
+                  <div class="tm img" data-show="5" data-hl="5"><div class="tm-note">開発：Windows 11 Pro / Enterprise ＋ Docker Desktop（Windows コンテナ）</div></div>
+                  <div class="tm img" data-show="5" data-hl="5"><div class="tm-note">本番：Windows Server ＋ Docker Engine。イメージの版（ltsc2022 など）を本番に合わせる</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tm host unk" data-term="gui_excel" data-show="6" data-hl="6">
+            <button class="tm-label" type="button"><span class="tm-name">GUI・Excel 操作のアプリ → コンテナには向かない</span><span class="tm-note">筆者の整理（公式未確認）</span></button>
+          </div>
+
+          <div class="tm-panel" aria-live="polite"></div>
+        </div>
+      </div>
+      <ol class="caption-list">
+        <li>最初の問いは、<strong>「そのアプリは Linux でも動くか」</strong>。コンテナはホストのカーネルを借りるので、Windows 用のアプリは Windows コンテナ、Linux 用のアプリは Linux コンテナになります。</li>
+        <li><strong>Linux でも動く例</strong>：<strong>PowerShell 7</strong>（Windows・macOS・Linux で動く）、<strong>.NET</strong>（クロスプラットフォーム）、PostgreSQL などの DB（公式イメージは Linux 向け）。</li>
+        <li>これらは<strong>パターン B（Linux コンテナ）</strong>。開発は WSL 2 ＋ Docker Engine（または Docker Desktop）、本番は Linux サーバーやクラウドです。<span class="badge inf">読み取り</span></li>
+        <li><strong>Windows 専用の例</strong>：<strong>.NET Framework</strong>（Windows アプリと Web サービス向け。IIS が、そのランタイムをホストできる）、<strong>Windows PowerShell 5.1</strong>（.NET Framework 上に作られている）。</li>
+        <li>これらは<strong>パターン A（Windows コンテナ）</strong>。開発は Windows 11 Pro / Enterprise ＋ Docker Desktop、本番は Windows Server ＋ Docker Engine。イメージの Windows の版を、本番に合わせます。</li>
+        <li><strong>GUI を操作するアプリや Excel の操作</strong>は、コンテナには向かないと、筆者は整理しています。そのままの PC か VM で動かす想定です。<span class="badge unk">公式未確認</span></li>
+      </ol>
+
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>アプリの種類</th><th>向いているコンテナ</th><th>根拠（公式で確認した範囲）</th></tr></thead>
+          <tbody>
+            <tr><th>Python・Node.js など、Linux でも動くもの</th><td>Linux</td><td><span class="badge inf">読み取り</span> コンテナはホストのカーネルを借りる（Microsoft Learn）</td></tr>
+            <tr><th>PowerShell 7</th><td>Linux でも Windows でも</td><td>Windows・macOS・Linux で動く（Microsoft Learn）</td></tr>
+            <tr><th>.NET（旧 .NET Core）</th><td>Linux でも Windows でも</td><td>クロスプラットフォーム（Microsoft Learn）</td></tr>
+            <tr><th>DB（PostgreSQL）</th><td>Linux</td><td>公式イメージに Windows の記載がない（Docker Hub）</td></tr>
+            <tr><th>.NET Framework / IIS</th><td>Windows</td><td>Windows アプリと Web サービス向け（Microsoft Learn）</td></tr>
+            <tr><th>Windows PowerShell 5.1</th><td>Windows</td><td>.NET Framework 上に作られている（Microsoft Learn）</td></tr>
+            <tr><th>GUI・Excel 操作</th><td>コンテナ向きでない</td><td><span class="badge unk">公式未確認</span> 筆者の整理</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <strong>パターン A / B の「本番」について</strong><br>
+        ・パターン A の「Windows Server ＋ Docker Engine」は、Microsoft が挙げるランタイム（Moby・Mirantis・containerd）に基づきます。<br>
+        ・パターン B の「Windows Server の Hyper-V 上に Linux VM」「Windows Server に直接 Linux コンテナは載せない」は、筆者の整理です。<span class="badge unk">公式ページでは確認できていません</span>
+      </div>
+
+      <div class="sources">
+        <strong>出典</strong>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/about/" target="_blank" rel="noopener">Microsoft Learn「About Windows containers」</a> … カーネルの共有、Azure の VM（Linux アプリには Ubuntu）</li>
+          <li><a href="https://learn.microsoft.com/en-us/powershell/scripting/whats-new/differences-from-windows-powershell" target="_blank" rel="noopener">Microsoft Learn「Differences between Windows PowerShell 5.1 and PowerShell 7.x」</a> … PowerShell のクロスプラットフォーム</li>
+          <li><a href="https://learn.microsoft.com/en-us/dotnet/core/introduction" target="_blank" rel="noopener">Microsoft Learn「Introduction to .NET」</a> … .NET はクロスプラットフォーム</li>
+          <li><a href="https://learn.microsoft.com/en-us/dotnet/framework/get-started/overview" target="_blank" rel="noopener">Microsoft Learn「Overview of .NET Framework」</a> … Windows アプリと Web サービス向け、IIS がホストできる</li>
+          <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/quick-start/set-up-environment" target="_blank" rel="noopener">Microsoft Learn「Prepare Windows operating system containers」</a> … Windows 10/11 と Windows Server のランタイム</li>
+          <li><a href="https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility" target="_blank" rel="noopener">Microsoft Learn「Windows container version compatibility」</a> … ホストとイメージの版の合わせ方</li>
+          <li><a href="https://hub.docker.com/_/postgres" target="_blank" rel="noopener">Docker Hub「postgres」</a> … 対応アーキテクチャの一覧に Windows の記載がない</li>
+        </ul>
+      </div>
+    </section>
+  </section>
+
+  <section class="group" id="sources">
+    <h2>出典・未確認の点</h2>
+    <p class="lead">取得日：2026-10-12。公式ドキュメント（Docker Docs・Microsoft Learn・OCI・containerd・Podman・Kubernetes）と、Microsoft の公式ブログ・GitHub のリリースノートです。</p>
+
+    <h4>この資料での区別</h4>
+    <ul>
+      <li><span class="badge ok">公式に明記</span> 公式ページにそのまま書かれていること</li>
+      <li><span class="badge inf">読み取り</span> 公式の記述から筆者が導いたこと</li>
+      <li><span class="badge unk">公式未確認</span> 今回の取得では確認できていないこと（筆者の整理を含む）</li>
+    </ul>
+
+    <h4>確認できていない点</h4>
+    <ul>
+      <li>WSL Containers が Docker Compose に未対応であること（報道のみ。Microsoft の公式ページでは確認できていない）</li>
+      <li>WSLC の VM が専用かどうか、使うカーネル（アーキテクチャ解説に記載なし）</li>
+      <li>dockerd → containerd → runc の呼び出しの順（公式ページに明記がない）</li>
+      <li>Windows 11 Home で Docker Desktop が使えるか（要件のリストに載っていない）</li>
+      <li>Windows Server に、Linux コンテナを直接載せない理由・可否（現行の公式ページでは確認できていない）</li>
+      <li>GUI・Excel 操作のアプリが、コンテナに向かないこと（筆者の整理）</li>
+    </ul>
+
+    <div class="note">
+      <strong>原文の照合のお願い</strong><br>
+      この資料は、公式ページを取得して要約した内容をもとに作っています。特に WSL Containers は、2026年9月29日に一般提供が始まったばかりで、ページや仕様が更新されやすい部分です。英語の引用や、バージョン・日付は、公開・共有する前に、リンク先の原文で確認してください。
+    </div>
+
+    <p class="story-foot"><a href="index.html">← 全体像の図に戻る</a> ／ <a href="example.html">実例</a> ／ <a href="details.html">補足：動きで見る詳細</a></p>
+  </section>
+
+  </main>
+</div>
+
+<script src="js/terms.js"></script>
+<script src="js/stepper.js"></script>
+<script src="js/termmap.js"></script>
+</body>
+</html>

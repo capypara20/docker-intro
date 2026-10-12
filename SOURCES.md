@@ -165,3 +165,56 @@
 - Windows コンテナで Linux 用の `host` / `none` ネットワークが使えるか
 - Windows コンテナでの tmpfs の可否
 - overlay2 などストレージドライバーの詳細（今回は対象外）
+
+## 選び方・周辺技術（choose.html）
+
+取得日：2026-10-12
+
+- **Docker Desktop のライセンス**（https://docs.docker.com/subscription/desktop-license/）
+  - 無料：小規模企業（250人未満かつ年商1,000万ドル未満）、個人、教育、非商用OSS
+  - 有償：大きな組織での業務利用、政府機関、無料枠を超える商用利用
+  - Docker Engine など OSS のライセンスは変更されていない
+- **Docker Desktop for Windows の要件**（https://docs.docker.com/desktop/setup/install/windows-install/）
+  - バックエンド：WSL 2（既定）、Hyper-V、Docker VMM（Beta）
+  - Windows 11：Enterprise / Pro / Education 23H2 以上。Home は要件のリストにない（可否は未確認）
+  - Windows コンテナ：Pro / Enterprise、all-users インストールのとき
+- **Windows コンテナの環境**（https://learn.microsoft.com/en-us/virtualization/windowscontainers/quick-start/set-up-environment）
+  - Windows 10/11：Professional または Enterprise、Hyper-V 有効
+  - Windows Server のランタイム：Moby（Docker CE）、Mirantis Container Runtime、containerd（nerdctl は Docker 互換CLI）
+- **WSL 2**（https://learn.microsoft.com/en-us/windows/wsl/about）
+  - 軽量なユーティリティVMの中で Linux カーネルを動かす
+- **WSL container**（https://learn.microsoft.com/en-us/windows/wsl/wsl-container）
+  - `wslc.exe`（Linux コンテナを build / run する CLI）と、WSL container API（NuGet: Microsoft.WSL.Containers）
+  - WSL 2.9.3 以上が必要（ページ更新日 2026-09-29）
+- **WSLC のアーキテクチャ**（https://devblogs.microsoft.com/commandline/wslc-architecture-deep-dive/）
+  - wslservice.exe（特権サービス）→ wslcsession.exe（ユーザーの代わりに動く）
+  - セッションごとに専用の VHD。Windows パスは virtiofs（Plan9 の約2倍速）
+  - ネットワークは新しいモデル「Consommé」
+  - 専用VMかどうか、使うカーネルは「記載なし」
+- **WSL のリリース**（https://github.com/microsoft/WSL/releases）
+  - 3.0.1（2026/9/29）：「WSLc is generally available」。3.0.3 でカーネル 6.18.54.1
+  - 「WSL 3」という名称は記載なし（3.0.x のバージョン番号のみ）
+- **OCI**（https://opencontainers.org/about/overview/）
+  - Runtime / Image / Distribution の3仕様。runC は Docker が寄贈（"the cornerstone of this new effort"）
+- **containerd**（https://containerd.io/）
+  - コンテナのライフサイクル全体を管理する industry-standard container runtime。CNCF 卒業（2019-02-28）
+  - "OCI Runtime Spec support (aka runC)"
+- **Podman**（https://docs.podman.io/en/latest/）
+  - daemonless。Docker 互換の CLI。root でも一般ユーザーでも実行可。runc / crun などの OCI 準拠ランタイムに頼る
+- **Kubernetes のコンテナランタイム**（https://kubernetes.io/docs/setup/production-environment/container-runtimes/）
+  - CRI 準拠のランタイムが必要。例：containerd、CRI-O、Docker Engine、Mirantis Container Runtime
+  - dockershim は 1.24 で削除
+- **PowerShell**（https://learn.microsoft.com/en-us/powershell/scripting/whats-new/differences-from-windows-powershell）
+  - 5.1 は .NET Framework 4.5 上。6.0 以降は .NET Core 上でクロスプラットフォーム（Windows / macOS / Linux）
+- **.NET**（https://learn.microsoft.com/en-us/dotnet/core/introduction）／**.NET Framework**（https://learn.microsoft.com/en-us/dotnet/framework/get-started/overview）
+  - .NET：無料・クロスプラットフォーム・オープンソース
+  - .NET Framework：Windows アプリと Web サービス向け。新規開発では .NET を使うよう案内。IIS がホストできる
+
+### 確認できていない／筆者の整理
+
+- WSL Containers が Docker Compose に未対応であること（報道のみ。Microsoft の公式ページでは未確認）
+- dockerd → containerd → runc の呼び出しの順（公式ページに明記なし）
+- Windows 11 Home での Docker Desktop の可否（要件のリストにない）
+- Windows Server に Linux コンテナを直接載せない理由・可否（現行の公式ページでは未確認）
+- GUI・Excel 操作のアプリがコンテナに向かないこと（筆者の整理）
+- 「層の分け方」（規格／低レベルランタイム／コンテナランタイム／エンジン／クラスタ管理）は筆者の整理

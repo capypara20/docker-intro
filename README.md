@@ -19,6 +19,7 @@ git clone https://github.com/capypara20/docker-intro.git
 |---|---|
 | [`docker_visual/index.html`](docker_visual/index.html) | **全体像**。左の図は常に1枚。右の文章を読み進める（スクロールする）と、輪郭だけだった図に、ホストOS・Docker Engine・イメージ・コンテナ・ネットワーク・ボリュームが1段階ずつ組み上がります。Windows / Linux コンテナの切り替えつき |
 | [`docker_visual/example.html`](docker_visual/example.html) | **実例**。Web アプリ ＋ DB を Docker で動かす例を、Linux コンテナと Windows コンテナに分けて解説 |
+| [`docker_visual/choose.html`](docker_visual/choose.html) | **選び方と周辺技術**。Windows PC で Docker を動かす5つの構成（VM / Docker Desktop / WSL 2 ＋ Engine / Windows コンテナ / WSL Containers）の比較、コンテナ技術の全体地図（OCI・runc・containerd・Podman・Kubernetes）、アプリ別の選び方 |
 | [`docker_visual/details.html`](docker_visual/details.html) | **補足**。VM との違い、Windows / Linux・分離モード、Dockerfile からイメージ、ビルドキャッシュ、bridge の名前解決、ポート公開、ボリュームなどを、1ステップずつ動かして確認できます。比較表と出典一覧つき |
 
 図の中の箱は、クリックすると「何の中にあるか」「何が入っているか」「ほかの関係」「意味」「出典」が出ます。
@@ -35,6 +36,7 @@ git clone https://github.com/capypara20/docker-intro.git
 docker_visual/
 ├─ index.html        全体像（スクロールで組み上がる）
 ├─ example.html      実例：Web アプリ ＋ DB
+├─ choose.html       選び方と周辺技術
 ├─ details.html      補足（1ステップずつ動かして確認）
 ├─ css/              見た目
 └─ js/               動き・用語辞書（terms.js）

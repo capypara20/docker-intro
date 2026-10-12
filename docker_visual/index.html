@@ -16,7 +16,7 @@
   <header class="story-head">
     <h1>Dockerを1枚の図で理解する</h1>
     <p>左の図は<strong>ずっと1枚</strong>。右を読み進める（スクロールする）と、輪郭だけの図が1段階ずつ組み上がります。箱を<strong>クリック</strong>すると意味と関係が出ます。
-      （<a href="example.html">実例：Webアプリ ＋ DB</a> ／ <a href="details.html">補足：動きで見る詳細</a>）</p>
+      （<a href="example.html">実例：Webアプリ ＋ DB</a> ／ <a href="details.html">補足：動きで見る詳細</a> ／ <a href="choose.html">選び方と周辺技術</a>）</p>
   </header>
 
   <div class="story" data-story>
@@ -199,6 +199,7 @@
           <strong>ここで増えたもの</strong>
           Docker Engine ＝ docker（CLI）＋ Docker API ＋ dockerd
         </div>
+        <p class="more">▶ もっと詳しく（動きで見る）：<a href="choose.html#t-landscape">OCI・runc・containerd・Podman・Kubernetes との関係</a></p>
         <div class="sources">
           <strong>出典</strong>
           <ul>
@@ -254,7 +255,7 @@
           <strong>ここで増えたもの</strong>
           Linux コンテナの土台 ＝ WSL 2 の Linux カーネル。カーネルが違うものは混ぜられない。
         </div>
-        <p class="more">▶ もっと詳しく（動きで見る）：<a href="details.html#t-kernel">分離モードの比較表・Rozeさんの PC の実機確認</a></p>
+        <p class="more">▶ もっと詳しく（動きで見る）：<a href="details.html#t-kernel">分離モードの比較表・Rozeさんの PC の実機確認</a> ／ <a href="choose.html#t-config">Windows PC で動かす5つの構成（Docker Desktop・WSL・WSL Containers）</a></p>
         <div class="sources">
           <strong>出典</strong>
           <ul>
@@ -326,6 +327,9 @@
             <li><a href="https://docs.docker.com/engine/storage/" target="_blank" rel="noopener">Docker Docs「Storage」</a> … ボリューム・bind mount・tmpfs の保存先の違い</li>
           </ul>
         </div>
+        <p class="story-foot">
+          <strong>どの構成・どの技術を使う？</strong> → <a href="choose.html">選び方と周辺技術</a>（Windows PC での構成の比較、コンテナ技術の全体地図、アプリ別の選び方）
+        </p>
         <p class="story-foot">
           <strong>実際のアプリではどうなる？</strong> → <a href="example.html">実例：Webアプリ ＋ DB を Docker で動かす</a>
         </p>
