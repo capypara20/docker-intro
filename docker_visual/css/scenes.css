@@ -171,6 +171,21 @@
 .cmpcol .vlink { font-size: 1rem; }
 .points { margin: 6px 0 0; padding-left: 1.2em; font-size: .92rem; }
 
+/* ----- 図（stage）と、説明・操作（scene-ui）を並べる ----- */
+.scene-main { display: block; }
+
+.scene { container-type: inline-size; }
+
+/* 図の入れ物（.scene）が十分に広いときだけ、図と説明を横に並べる */
+@container (min-width: 1000px) {
+  .scene-main {
+    display: grid; align-items: start; gap: 22px;
+    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  }
+  /* 図が縦に長くても、説明と操作ボタンは画面の上のほうに残る */
+  .scene-main > .scene-ui { position: sticky; top: 12px; }
+  .scene-main .progress { margin-top: 0; }
+}
 /* ----- 表示・非表示・強調（このブロックは必ず最後に置く） ----- */
 [data-show], [data-hide] { transition: opacity .5s ease, transform .5s ease; }
 [data-move] {

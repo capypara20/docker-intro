@@ -54,14 +54,23 @@
 
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 
+/* 広い画面（PC・拡大率を下げたブラウザ）では、文字を少し大きくして、図も一緒に大きくする */
+html { font-size: clamp(16px, 0.42vw + 9px, 22px); }
+
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 16px/1.75 var(--font);
+  font: 1rem/1.75 var(--font);
 }
 
 .wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px 64px; }
+
+/* PC の広い画面では、ページの幅も広げる（左右の余白を減らす） */
+@media (min-width: 1200px) {
+  .wrap      { max-width: min(1560px, 94vw); }
+  .wrap.wide { max-width: min(1880px, 96vw); }
+}
 
 /* ----- ヘッダー ----- */
 .site-header { padding: 28px 0 14px; }

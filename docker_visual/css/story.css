@@ -1,6 +1,6 @@
 /* ===== story.css : スクロール型の解説（左に固定された1枚の図、右に章） ===== */
 
-.wrap.wide { max-width: 1240px; }
+/* .wrap.wide の幅は base.css（広い画面のとき）で決める */
 
 .story-head { padding: 22px 0 8px; }
 .story-head h1 { margin: 0 0 6px; font-size: 1.55rem; line-height: 1.35; }
@@ -100,7 +100,7 @@
 
 /* ----- 右：章 ----- */
 .chapter {
-  min-height: 74vh;
+  min-height: clamp(380px, 56vh, 680px);   /* 広い画面で、章の間に大きな空白ができないように */
   padding: 22px 0 22px 16px;
   border-left: 5px solid var(--border);
   border-bottom: 1px dashed var(--border);
@@ -116,7 +116,7 @@
 .chapter ul { margin: 6px 0; padding-left: 1.2em; }
 .chapter .added { margin: 10px 0; padding: 8px 12px; background: var(--surface-2); border-radius: 10px; }
 .chapter .added > strong { display: block; }
-.chapter:last-of-type { min-height: 60vh; border-bottom: 0; }
+.chapter:last-of-type { min-height: clamp(320px, 50vh, 600px); border-bottom: 0; }
 
 .story-foot { margin: 18px 0 0; }
 

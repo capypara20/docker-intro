@@ -34,3 +34,21 @@
 
 /* 構成の行の中では、箱を縦に引き伸ばさない */
 .cfg .tm-body { align-items: flex-start; }
+
+/* PC の非常に広い画面（目安：幅 2000px 以上）では、図を2列に並べて縦の長さを減らす。
+   図が1つしかないグループは、そのまま全幅で、図と説明を横に並べる */
+@media (min-width: 2000px) {
+  .group:has(> .scene ~ .scene) {
+    display: grid; align-items: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 20px;
+  }
+  .group:has(> .scene ~ .scene) > :not(.scene) { grid-column: 1 / -1; }
+}
+
+/* 選び方ページ：構成の比較は、広い画面では2列にする */
+@media (min-width: 1500px) {
+  .termmap:has(> .cfg) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
+  .termmap:has(> .cfg) > .tm-panel { grid-column: 1 / -1; }
+  .termmap:has(> .cfg) > .cfg { margin: 0; }
+}

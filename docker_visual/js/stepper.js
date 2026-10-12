@@ -76,7 +76,11 @@
           <button type="button" class="btn" data-act="reset">↻ 最初から</button>
           <span class="step-count"></span>
         </div>`;
-      this.stage.after(ui);
+      /* 図と説明・操作を、ひとまとまり（scene-main）にする。広い画面では横に並ぶ */
+      const main = document.createElement('div');
+      main.className = 'scene-main';
+      this.stage.before(main);
+      main.append(this.stage, ui);
 
       this.captionEl = ui.querySelector('.caption-body');
       this.countEl = ui.querySelector('.step-count');
